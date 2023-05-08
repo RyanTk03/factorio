@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
     AppButton *resetButton;
     SDL_Point buttonsPositions[TOTAL_BUTTONS];
 
-    Polynome polynome = {{CreateFraction(), CreateFraction(), CreateFraction()}}; //The polynome to factorize
+    Polynome polynome = {{CreateFraction(), CreateFraction(), CreateFraction()}, NULL, NULL, NULL}; //The polynome to factorize
     EditSettings edit = {.activeTextBox = 0, .isFraction = {SDL_FALSE, SDL_FALSE, SDL_FALSE},
                          .writtingNumerator = {SDL_TRUE, SDL_TRUE, SDL_TRUE}, .cursorRect = &cursorRect, .polynome = &polynome};
 
@@ -79,7 +79,7 @@ int main(int argc, char * argv[])
             if(IsSelected(numberButton[i]))
                 fillCoefficients(numberButton[i]->label[0], &edit);
 
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < 6; i++)
         {
             if(IsSelected(operatorButton[i]))
             {
@@ -103,6 +103,9 @@ int main(int argc, char * argv[])
                 }
             }
         }
+
+        if(IsSelected(factoriserButton))
+            factorize(edit.polynome);
 
 
         drawBackground(appRenderer, font, &edit);

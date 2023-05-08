@@ -81,6 +81,11 @@ void drawBackground(SDL_Renderer *renderer, TTF_Font *font, EditSettings *edit)
         SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
     }
 
+    if(edit->polynome->r_root1 == NULL && edit->polynome->r_root2 == NULL)
+    {
+
+    }
+
     //drawing the cursor
     static int currentTime = 0, lastTime = 0;
     currentTime = SDL_GetTicks();

@@ -15,19 +15,26 @@ void discriminant(Polynome *p, Fraction *f)
 
 void roots(Polynome *p, Fraction *f)
 {
+    double d = Fraction_GetValue(p->r_discriminant);
+
+    if(d < 0)
+        return;
+
     p->r_root1 = CreateFraction();
-    p->r_root2 = CreateFraction();
-
     *p->r_root1 = DecimalToFraction((- Fraction_GetValue(p->coefficients[1]) - sqrt(Fraction_GetValue(p->r_discriminant))) /
-                                    (2 * Fraction_GetValue(p->coefficients[0])));
-
-    *p->r_root2 = DecimalToFraction((- Fraction_GetValue(p->coefficients[1]) + sqrt(Fraction_GetValue(p->r_discriminant))) /
-                                    (2 * Fraction_GetValue(p->coefficients[0])));
+                                        (2 * Fraction_GetValue(p->coefficients[0])));
     if(f != NULL)
-    {
         f[0] = *p->r_root1;
+
+    if(d == 0)
+        return;
+
+    p->r_root2 = CreateFraction();
+    *p->r_root2 = DecimalToFraction((- Fraction_GetValue(p->coefficients[1]) + sqrt(Fraction_GetValue(p->r_discriminant))) /
+                                        (2 * Fraction_GetValue(p->coefficients[0])));
+
+    if(f != NULL)
         f[1] = *p->r_root2;
-    }
 
 }
 
