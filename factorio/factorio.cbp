@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="factorio" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/factorio" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2.dll.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_image.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_image.dll.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_ttf.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_ttf.dll.a" />
+					<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2main.a" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/factorio" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/include" />
+		</Compiler>
+		<Linker>
+			<Add library="mingw32" />
+			<Add library="SDL2main" />
+			<Add library="SDL2.dll" />
+			<Add library="user32" />
+			<Add library="gdi32" />
+			<Add library="winmm" />
+			<Add library="dxguid" />
+			<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_ttf.dll.a" />
+			<Add library="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib/libSDL2_image.dll.a" />
+			<Add directory="C:/Program Files/CodeBlocks/lib/SDL_2x/SDL2-2.26.4/x86_64-w64-mingw32/lib" />
+		</Linker>
+		<ExtraCommands>
+			<Add after="XCOPY $(#sdl2)\bin\*.dll $(TARGET_OUTPUT_DIR) /D /Y" />
+		</ExtraCommands>
+		<Unit filename="inc/AppButton.h" />
+		<Unit filename="inc/const.h" />
+		<Unit filename="inc/drawFunc.h" />
+		<Unit filename="inc/fraction.h" />
+		<Unit filename="inc/initGraphicalsElements.h" />
+		<Unit filename="inc/mySDLfunc.h" />
+		<Unit filename="inc/polynome.h" />
+		<Unit filename="src/AppButton.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/drawFunc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fraction.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/initGraphicsElements.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/mySDLfunc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/polynome.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<debugger>
+				<search_path add="D:\Made By Rayane\C\Nouveau dossier\factorio" />
+				<search_path add="D:\Made By Rayane\C\Nouveau dossier\factorio\bin\Debug" />
+			</debugger>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
