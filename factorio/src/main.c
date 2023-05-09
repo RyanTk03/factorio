@@ -23,8 +23,8 @@ int main(int argc, char * argv[])
 
     SDL_Window *appWindow = SDL_CreateWindow("Factorio", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);;
     SDL_Renderer *appRenderer = SDL_CreateRenderer(appWindow, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Rect cursorRect = {TEXTBOXRECT_1.x + TEXTBOX_WIDTH - TEXTBOX_PADDING,
-                            TEXTBOX_Y + (TEXTBOX_HEIGHT / 2) - (CURSOR1_HEIGHT / 2), 1, CURSOR1_HEIGHT};
+    SDL_Rect cursorRect = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
+                            INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR1_HEIGHT / 2), 1, CURSOR1_HEIGHT};
     TTF_Font *font = TTF_OpenFont("tahoma.ttf", 15);
 
     AppButton *numberButton[10];
@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
     SDL_Point buttonsPositions[TOTAL_BUTTONS];
 
     Polynome polynome = {{CreateFraction(), CreateFraction(), CreateFraction()}, NULL, NULL, NULL}; //The polynome to factorize
-    EditSettings edit = {.activeTextBox = 0, .isFraction = {SDL_FALSE, SDL_FALSE, SDL_FALSE},
+    EditSettings edit = {.activeInput = INPUT_A, .modifiedInput = INPUT_NONE, .isFraction = {SDL_FALSE, SDL_FALSE, SDL_FALSE},
                          .writtingNumerator = {SDL_TRUE, SDL_TRUE, SDL_TRUE}, .cursorRect = &cursorRect, .polynome = &polynome};
 
     SDL_SetRenderDrawColor(appRenderer, BACKGROUND_COLOR_COMPOSANT);
@@ -89,12 +89,12 @@ int main(int argc, char * argv[])
                         break;
 
                     case 1:
-                        Fraction_SetValue(edit.polynome->coefficients[edit.activeTextBox], Fraction_GetValue(edit.polynome->coefficients[edit.activeTextBox]) * -1);
+                        Fraction_SetValue(edit.polynome->coefficients[edit.activeInput], Fraction_GetValue(edit.polynome->coefficients[edit.activeInput]) * -1);
                         break;
 
                     case 2:
-                        edit.isFraction[edit.activeTextBox] = !edit.isFraction[edit.activeTextBox];
-                        setCursor(&(SDL_Point){TEXTBOXESRECTS[edit.activeTextBox].x + 50, event.button.y}, &edit);
+                        edit.isFraction[edit.activeInput] = !edit.isFraction[edit.activeInput];
+                        setCursor(&(SDL_Point){INPUTS_RECTS[edit.activeInput].x + 50, event.button.y}, &edit);
                         break;
 
                     case 3:

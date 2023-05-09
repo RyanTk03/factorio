@@ -8,9 +8,15 @@
 #include "mySDLfunc.h"
 #include "polynome.h"
 
+typedef enum
+{
+    INPUT_A = 0, INPUT_B = 1, INPUT_C = 2, INPUT_NONE = 3
+} Input;
+
 typedef struct
 {
-    int activeTextBox;
+    Input activeInput;
+    Input modifiedInput;
     SDL_bool isFraction[3];
     SDL_bool writtingNumerator[3];
     SDL_Rect *cursorRect;
