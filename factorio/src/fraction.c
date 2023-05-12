@@ -1,16 +1,25 @@
 #include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "../inc/fraction.h"
+#include "../inc/const.h"
 
 Fraction* CreateFraction()
 {
-    Fraction *f = malloc(sizeof f);
+    Fraction *f = malloc(sizeof (Fraction*));
 
     f->num = 0;
     f->den = 1;
     f->value = 0;
 
     return f;
+}
+
+void FreeFraction(Fraction *f)
+{
+    if(f != NULL)
+        free(f);
 }
 
 void Fraction_SetNum(Fraction *f, double value)
@@ -193,4 +202,48 @@ int PGCD(int a, int b)
     else
         return PGCD(a < b ? a : b, r);
 
+}
+
+SDL_Texture* RenderFraction(SDL_Renderer *renderer, TTF_Font *font, Fraction *fraction, SDL_bool withSign)
+{
+    SDL_Texture *defaultTarget = SDL_GetRenderTarget(renderer);
+    char label[MAXNUMBERCHAR];
+    int x1, x2, y1, y2, w1, w2, h1, h2;
+    int w;
+
+    //Render first the numerator
+    snprintf( label, MAXNUMBERCHAR, withSign ? "%+d" : "%d", withSign ? Fraction_GetNum(fraction) : abs(Fraction_GetNum(fraction)));
+    SDL_Texture *temp1 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255));
+    SDL_QueryTexture(temp1, NULL, NULL, &w1, &h1);
+
+    //Render the denominator now
+    snprintf( label, MAXNUMBERCHAR, "%d", abs( Fraction_GetDen(fraction) ) );
+    SDL_Texture *temp2 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255));
+    SDL_QueryTexture(temp2, NULL, NULL, &w2, &h2);
+
+    w = (w1 > w2 ? w1 : w2);
+
+    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, INPUT_HEIGHT - 2);
+    SDL_SetRenderTarget(renderer, texture);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    x1 = (w / 2) - (w1 / 2);
+    y1 = 0;
+    SDL_RenderCopy(renderer, temp1, NULL, &(SDL_Rect){x1, y1, w1, h1});
+    SDL_DestroyTexture(temp1);
+
+    x2 = (w / 2) - (w2 / 2);
+    y2 = (INPUT_HEIGHT - 2) / 2;
+    SDL_RenderCopy(renderer, temp2, NULL, &(SDL_Rect){x2, y2, w2, h2});
+    SDL_DestroyTexture(temp2);
+
+    //Drawing the fraction's bar
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    MySDL_RenderDrawHorizontalLine(renderer, w1 > w2 ? x1 : x2, (INPUT_HEIGHT - 2) / 2, w, 1);
+
+    SDL_SetRenderTarget(renderer, defaultTarget);
+
+    return texture;
 }

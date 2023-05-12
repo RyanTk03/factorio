@@ -3,6 +3,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "../inc/AppButton.h"
+#include "../inc/mySDLfunc.h"
 
 AppButton* CreateButton(int w, int h, const char *label, TTF_Font *font)
 {
@@ -239,6 +240,8 @@ int SetButtonColor(AppButton *button, SDL_Renderer *renderer, SDL_Color color, B
     SDL_SetRenderTarget(renderer, renderTarget);
 
     SDL_DestroyTexture(temp);
+
+    return 0;
 }
 
 int UpdateButton(AppButton *button, SDL_Renderer *renderer, SDL_Event *event)
@@ -253,20 +256,20 @@ int UpdateButton(AppButton *button, SDL_Renderer *renderer, SDL_Event *event)
         {
             button->hovered = SDL_TRUE;
             button->selected = SDL_TRUE;
-            button->rectToDraw = (SDL_Rect){button->rect.w * 2, 0, button->rect.w, button->rect.h};
+            button->rectToDraw.x = button->rect.w * 2;
         }
         else
         {
             button->hovered = SDL_TRUE;
             button->selected = SDL_FALSE;
-            button->rectToDraw = (SDL_Rect){button->rect.w, 0, button->rect.w, button->rect.h};
+            button->rectToDraw.x = button->rect.w;
         }
     }
     else if(event->type == SDL_MOUSEMOTION && !SDL_PointInRect(&cursor, &button->rect))
     {
         button->hovered = SDL_FALSE;
         button->selected = SDL_FALSE;
-        button->rectToDraw = (SDL_Rect){0, 0, button->rect.w, button->rect.h};
+        button->rectToDraw.x = 0;
     }
 
     SDL_RenderCopy(renderer, button->texture, &button->rectToDraw, &button->rect);
@@ -276,6 +279,9 @@ int UpdateButton(AppButton *button, SDL_Renderer *renderer, SDL_Event *event)
 
 SDL_bool IsHovered(AppButton *button)
 {
+    if(button == NULL)
+        return SDL_FALSE;
+
     if(button->hovered)
     {
         button->hovered = SDL_FALSE;
@@ -290,7 +296,10 @@ SDL_bool IsSelected(AppButton *button)
     if(button == NULL)
         return SDL_FALSE;
 
-    if(button->selected)
+    SDL_Point cursor;
+    SDL_GetMouseState(&cursor.x, &cursor.y);
+
+    if(SDL_PointInRect(&cursor, &button->rect))
     {
         button->selected = SDL_FALSE;
         return SDL_TRUE;

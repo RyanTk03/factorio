@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "../inc/const.h"
 #include "../inc/AppButton.h"
@@ -32,13 +33,13 @@ void calculateButtonsPositions()
     }
 }
 
-int initNumberButton(AppButton *button[], int len, SDL_Renderer *renderer, TTF_Font *font)
+int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
 {
     char label[2];
 
     for(int i = 0; i < len; i++)
     {
-        sprintf(label, "%d", i);
+        snprintf(label, 1, "%d", i);
         label[1] = '\0';
         button[i] = CreateButton(i != 0 ? NUMBERBUTTON_W : NUMBERBUTTON_W * 3, NUMBERBUTTON_H, label, font);
         if(button[i] == NULL)
@@ -49,7 +50,7 @@ int initNumberButton(AppButton *button[], int len, SDL_Renderer *renderer, TTF_F
     return 0;
 }
 
-int initOperatorButton(AppButton *button[], int len, SDL_Renderer *renderer, TTF_Font *font)
+int initOperatorButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
 {
     char *label = NULL;
 
@@ -82,7 +83,7 @@ int initOperatorButton(AppButton *button[], int len, SDL_Renderer *renderer, TTF
     return 0;
 }
 
-int initOthersButton(AppButton *button[], int len, SDL_Renderer *renderer, TTF_Font *font)
+int initOthersButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
 {
     for(int i = 0; i < len; i++)
     {

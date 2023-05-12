@@ -1,10 +1,13 @@
 #ifndef CONST_H_INCLUDED
 #define CONST_H_INCLUDED
 
-/*          Graphical constants         */
+//Screen constants
 #define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#define SCREEN_HEIGHT 540
+#define BACKGROUND_COLOR (SDL_Color){63, 72, 204, 255}
+#define BACKGROUND_COLOR_COMPOSANT 63, 72, 204, 255
 
+//The inputs constants
 #define INPUTS_MARGIN 22
 #define INPUTS_PADDING 5
 #define INPUT_WIDTH 70
@@ -17,12 +20,26 @@
 #define INPUT4_RECT (SDL_Rect){INPUT3_RECT.x + INPUT3_RECT.w + INPUTS_MARGIN, INPUT_Y, INPUT_WIDTH * 3, INPUT_HEIGHT}
 #define INPUTS_RECTS (SDL_Rect[]){INPUT1_RECT, INPUT2_RECT, INPUT3_RECT, INPUT4_RECT}
 
+//The inputs cursor constants
+#define CURSOR1_HEIGHT 22
+#define CURSOR2_HEIGHT 16
+
+//The labels constants
 #define LABEL_XSQUARE (SDL_Point){14, 19}
 #define LABEL_X (SDL_Point){8, 19}
 #define LABEL_EQUAL (SDL_Point){11, 19}
 
-#define CURSOR1_HEIGHT 22
-#define CURSOR2_HEIGHT 16
+//The graphics constants
+#define GRAPH_WIDTH SCREEN_WIDTH
+#define GRAPH_HEIGHT 200
+#define GRAPH_X 0
+#define GRAPH_Y 85
+#define GRAPH_ORIGIN_X GRAPH_X + (GRAPH_WIDTH / 2)
+#define GRAPH_ORIGIN_Y GRAPH_Y + (GRAPH_HEIGHT / 2)
+#define GRAPH_BORDER_COLOR (SDL_Color){195, 195, 195, 255}
+#define GRAPH_BORDER_COLOR_COMPOSANT 195, 195, 195, 255
+
+
 
 #define NUMBERBUTTON_W 160
 #define NUMBERBUTTON_H 60
@@ -33,7 +50,5 @@
 
 #define MAXNUMBERCHAR 6
 
-#define BACKGROUND_COLOR (SDL_Color){63, 72, 204, 255}
-#define BACKGROUND_COLOR_COMPOSANT 63, 72, 204, 255
 
 #endif // CONST_H_INCLUDED

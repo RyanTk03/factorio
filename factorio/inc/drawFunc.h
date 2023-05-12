@@ -16,15 +16,19 @@ typedef enum
 typedef struct
 {
     Input activeInput;
-    Input modifiedInput;
     SDL_bool isFraction[3];
     SDL_bool writtingNumerator[3];
     SDL_Rect *cursorRect;
     Polynome *polynome;
+    SDL_Renderer *renderer;
+    TTF_Font *font;
+    char inputsTexts[3][MAXNUMBERCHAR+2];// +1 for the null character and +1 for the sign(always draw the sign)
 } EditSettings;
 
-void drawBackground(SDL_Renderer *renderer, TTF_Font *font, EditSettings *edit);
+void drawBackground(EditSettings *edit);
 void fillCoefficients(char value, EditSettings *edit);
 void setCursor(SDL_Point *mousePosition, EditSettings *edit);
+void flashingCursor(EditSettings *edit);
+void drawResult(SDL_Renderer *renderer, TTF_Font *font, Polynome *polynome);
 
 #endif // DRAWFUNC_H_INCLUDED

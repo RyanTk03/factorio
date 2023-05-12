@@ -463,52 +463,64 @@
 	"../inc/drawFunc.h"
 	"../inc/fraction.h"
 
-1683483806 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\appbutton.c
+1683920414 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\appbutton.c
 	<stdio.h>
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
 	"../inc/AppButton.h"
+	"../inc/mySDLfunc.h"
 
 1683463384 d:\made_by_rayane\c\factorio_2.0\factorio\inc\appbutton.h
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
 
-1683669481 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\drawfunc.c
+1683922038 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\drawfunc.c
 	<stdio.h>
+	<math.h>
+	<ctype.h>
+	<string.h>
 	"../inc/drawFunc.h"
 	"../inc/fraction.h"
+	"../inc/polynome.h"
 
-1683667601 d:\made_by_rayane\c\factorio_2.0\factorio\inc\drawfunc.h
+1683914388 d:\made_by_rayane\c\factorio_2.0\factorio\inc\drawfunc.h
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
 	"const.h"
 	"mySDLfunc.h"
 	"polynome.h"
 
-1683670894 d:\made_by_rayane\c\factorio_2.0\factorio\inc\const.h
+1683911783 d:\made_by_rayane\c\factorio_2.0\factorio\inc\const.h
 
 1683558383 d:\made_by_rayane\c\factorio_2.0\factorio\inc\mysdlfunc.h
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
 
-1683477286 d:\made_by_rayane\c\factorio_2.0\factorio\inc\polynome.h
+1683922060 d:\made_by_rayane\c\factorio_2.0\factorio\inc\polynome.h
 	"fraction.h"
 
-1683475502 d:\made_by_rayane\c\factorio_2.0\factorio\inc\fraction.h
+1683914357 d:\made_by_rayane\c\factorio_2.0\factorio\inc\fraction.h
+	<SDL2/SDL.h>
+	<SDL2/SDL_ttf.h>
+	"mySDLfunc.h"
 
-1683475502 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\fraction.c
+1683917850 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\fraction.c
 	<math.h>
-	"../inc/fraction.h"
-
-1683391704 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\initgraphicselements.c
 	<stdlib.h>
+	<stdio.h>
+	"../inc/fraction.h"
+	"../inc/const.h"
+
+1683820137 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\initgraphicselements.c
+	<stdlib.h>
+	<stdio.h>
 	"../inc/const.h"
 	"../inc/AppButton.h"
 	"../inc/initGraphicalsElements.h"
 
-1683391927 d:\made_by_rayane\c\factorio_2.0\factorio\inc\initgraphicalselements.h
+1683819723 d:\made_by_rayane\c\factorio_2.0\factorio\inc\initgraphicalselements.h
 
-1683669398 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\main.c
+1683921876 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\main.c
 	<stdio.h>
 	<SDL2/SDL.h>
 	<SDL2/SDL_ttf.h>
@@ -523,8 +535,10 @@
 1683561988 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\mysdlfunc.c
 	"../inc/mySDLfunc.h"
 
-1683582583 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\polynome.c
+1683922239 source:d:\made_by_rayane\c\factorio_2.0\factorio\src\polynome.c
 	<stdlib.h>
+	<stdio.h>
 	<math.h>
 	"../inc/polynome.h"
+	"../inc/const.h"
 

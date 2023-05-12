@@ -1,6 +1,11 @@
 #ifndef FRACTION_H_INCLUDED
 #define FRACTION_H_INCLUDED
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
+#include "mySDLfunc.h"
+
 typedef struct
 {
     int num;
@@ -11,6 +16,7 @@ typedef struct
 #define FRACT(n) (Fraction){n, 1, n}
 
 Fraction* CreateFraction();
+void FreeFraction(Fraction *f);
 int Fraction_GetNum(Fraction *f);
 int Fraction_GetDen(Fraction *f);
 void Fraction_SetNum(Fraction *f, double value);
@@ -26,5 +32,6 @@ Fraction Fraction_Sqrt(Fraction f);
 void Fraction_Reduce(Fraction *f);
 Fraction DecimalToFraction(double decimal);
 int PGCD(int a, int b);
+SDL_Texture* RenderFraction(SDL_Renderer *renderer, TTF_Font *font, Fraction *fraction, SDL_bool withSign);
 
 #endif // FRACTION_H_INCLUDED
