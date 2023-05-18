@@ -11,7 +11,7 @@ AppButton* CreateButton(int w, int h, const char *label, TTF_Font *font)
     AppButton *button = malloc(sizeof(*button));
     if(button == NULL)
     {
-        SDL_SetError("Can't create an instance of a button :: CreateButton().\n");
+        SDL_SetError("Cannot create an instance of a button :: CreateButton().\n");
         return NULL;
     }
 
@@ -21,21 +21,23 @@ AppButton* CreateButton(int w, int h, const char *label, TTF_Font *font)
     {
         SDL_SetError("La police n'a pas pu etre creer :: CreateButton().\n");
         button->font = TTF_OpenFont("C/Windows/Fonts/arial.ttf", 12);
+        if(button->font == NULL)
+        {
+            free(button);
+            return NULL;
+        }
     }
 
     //Set the label of the button//
     if(label == NULL)
     {
-        fprintf(stdout, "The label of the button is empty :: BTN_CreateButton().\n");
         SDL_SetError("The label of the button is empty :: BTN_CreateButton().\n");
         label = " ";
     }
     if(strlen(label) > MAX_LABEL_SIZE - 1)
-    {
-        fprintf(stdout, "The label of the button is to long :: BTN_CreateButton().\n");
         SDL_SetError("The label of the button is to long :: BTN_CreateButton().\n");
-    }
-    strcpy(button->label, label);
+
+    snprintf(button->label, MAX_LABEL_SIZE, label);
 
     button->rect.w = w;
     button->rect.h = h;
@@ -68,9 +70,6 @@ AppButton* CreateButton(int w, int h, const char *label, TTF_Font *font)
     button->activeColor.b = 0;
     button->activeColor.a = 25;
 
-    button->hovered = SDL_FALSE;
-    button->selected = SDL_FALSE;
-
     return button;
 }
 
@@ -85,69 +84,82 @@ int CopyButton(AppButton *button, SDL_Renderer *renderer, SDL_Point position)
     button->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, button->rect.w * 3, button->rect.h);
     if(button->texture == NULL)
     {
-        SDL_SetError("Can't textured the button :: BTN_CopyButton()\n");
+        SDL_SetError("Cannot textured the button :: CopyButton()\n");
         return -1;
     }
-    SDL_SetTextureBlendMode(button->texture, SDL_BLENDMODE_BLEND);
+    if(SDL_SetTextureBlendMode(button->texture, SDL_BLENDMODE_BLEND) < 0)
+        SDL_SetError("Cannot apply transparency to the button texture :: CopyButton()\n");
 
 
     /*
     * First of all, let's draw the button at his normal state
     */
     //set the render target to a temp texture
-    SDL_SetRenderTarget(renderer, button->texture);
-    SDL_SetRenderDrawColor(renderer, button->defaultColor.r, button->defaultColor.g, button->defaultColor.b, button->defaultColor.a);
-    SDL_RenderClear(renderer);
-
-    //fill the button texture with normal background color at the corresponding rect
-    SDL_SetRenderDrawColor(renderer, button->defaultColor.r, button->defaultColor.g, button->defaultColor.b, button->defaultColor.a);
-    SDL_RenderFillRect(renderer, &(SDL_Rect){0, 0, button->rect.w, button->rect.h});
-    SDL_RenderPresent(renderer);
-
-    //fill the button texture with hovered background color at the corresponding rect
-    SDL_SetRenderDrawColor(renderer, button->hoveredColor.r, button->hoveredColor.g, button->hoveredColor.b, button->hoveredColor.a);
-    SDL_RenderFillRect(renderer, &(SDL_Rect){button->rect.w, 0, button->rect.w, button->rect.h});
-    SDL_RenderPresent(renderer);
-
-    //fill the button texture with the active(click) background color at the corresponding rect
-    SDL_SetRenderDrawColor(renderer, button->activeColor.r, button->activeColor.g, button->activeColor.b, button->activeColor.a);
-    SDL_RenderFillRect(renderer, &(SDL_Rect){button->rect.w * 2, 0, button->rect.w, button->rect.h});
-    SDL_RenderPresent(renderer);
-
-    //Creation of the label's texture on normal state
-    SDL_Texture *temp = MyTTF_RenderText_Blended(renderer, button->font, button->label, button->labelColor);
-    if(temp == NULL)
+    if(SDL_SetRenderTarget(renderer, button->texture) < 0)
     {
-        SDL_SetError("Cannot create the texture of the label :: CopyButton().\n");
+        SDL_SetError("Cannot textured the button :: CopyButton()\n");
+        SDL_DestroyTexture(button->texture);
         return -1;
     }
+    if(SDL_SetRenderDrawColor(renderer, button->defaultColor.r, button->defaultColor.g, button->defaultColor.b,
+                              button->defaultColor.a) < 0 ||
+       SDL_RenderClear(renderer) < 0)
+        SDL_SetError("Cannot clear the button :: CopyButton()\n");
+
+    //fill the button texture with normal background color at the corresponding rect
+    if(SDL_SetRenderDrawColor(renderer, button->defaultColor.r, button->defaultColor.g, button->defaultColor.b,
+                              button->defaultColor.a) < 0 ||
+       SDL_RenderFillRect(renderer, &(SDL_Rect){0, 0, button->rect.w, button->rect.h}))
+        SDL_SetError("Cannot set default color to the button :: CopyButton()\n");
+
+    //fill the button texture with hovered background color at the corresponding rect
+    if(SDL_SetRenderDrawColor(renderer, button->hoveredColor.r, button->hoveredColor.g, button->hoveredColor.b,
+                              button->hoveredColor.a) < 0 ||
+       SDL_RenderFillRect(renderer, &(SDL_Rect){button->rect.w, 0, button->rect.w, button->rect.h}))
+        SDL_SetError("Cannot set hover color to the button :: CopyButton()\n");
+
+    //fill the button texture with the active(click) background color at the corresponding rect
+    if(SDL_SetRenderDrawColor(renderer, button->activeColor.r, button->activeColor.g, button->activeColor.b,
+                              button->activeColor.a) < 0 ||
+       SDL_RenderFillRect(renderer, &(SDL_Rect){button->rect.w * 2, 0, button->rect.w, button->rect.h}))
+        SDL_SetError("Cannot set active color to the button :: CopyButton()\n");
+
+    //Creation of the label's texture on normal state
     SDL_Rect labelRect;
-    SDL_QueryTexture(temp, NULL, NULL, &labelRect.w, &labelRect.h);
+    SDL_Texture *temp = MyTTF_RenderText_Blended(renderer, button->font, button->label, button->labelColor,
+                                                 &labelRect.w, &labelRect.h);
+    if(temp == NULL)
+    {
+        SDL_SetError("Cannot create a label to the button:: CopyButton().\n");
+        SDL_SetRenderTarget(renderer, renderTarget);
+        SDL_DestroyTexture(button->texture);
+        return -1;
+    }
     labelRect.x = (button->rect.w/2) - (labelRect.w/2);
     labelRect.y = (button->rect.h/2) - (labelRect.h/2);
 
     //draw the label on the default state part of the texture
-    SDL_RenderCopy(renderer, temp, NULL, &labelRect);
-    SDL_RenderPresent(renderer);
+    if(SDL_RenderCopy(renderer, temp, NULL, &labelRect) < 0)
+        SDL_SetError("Cannot set a label to the button:: CopyButton().\n");
 
     //draw the label on the active state part of the texture
     labelRect.x += 2 * button->rect.w;
-    SDL_RenderCopy(renderer, temp, NULL, &labelRect);
-    SDL_RenderPresent(renderer);
+    if(SDL_RenderCopy(renderer, temp, NULL, &labelRect) < 0)
+        SDL_SetError("Cannot set a label to the button:: CopyButton().\n");
 
     //draw the label on the hovered state part of the texture
     labelRect.w += 1;
     labelRect.h += 1;
     labelRect.x = button->rect.w + (button->rect.w/2) - (labelRect.w/2);
     labelRect.y = (button->rect.h/2) - (labelRect.h/2);
-    SDL_RenderCopy(renderer, temp, NULL, &labelRect);
-    SDL_RenderPresent(renderer);
+    if(SDL_RenderCopy(renderer, temp, NULL, &labelRect) < 0)
+        SDL_SetError("Cannot set a label to the button:: CopyButton().\n");
+    SDL_DestroyTexture(temp);
 
     //reset the default renderer target
     SDL_SetRenderTarget(renderer, renderTarget);
-    SDL_RenderCopy(renderer, button->texture, &(SDL_Rect){0, 0, button->rect.w, button->rect.h}, &button->rect);
-    SDL_RenderPresent(renderer);
-    SDL_DestroyTexture(temp);
+    if(SDL_RenderCopy(renderer, button->texture, &(SDL_Rect){0, 0, button->rect.w, button->rect.h}, &button->rect) < 0)
+        SDL_SetError("Cannot copy the button to the renderer:: CopyButton().\n");
 
     button->rectToDraw = (SDL_Rect){0, 0, button->rect.w, button->rect.h};
 
@@ -163,15 +175,15 @@ int SetButtonColor(AppButton *button, SDL_Renderer *renderer, SDL_Color color, B
     if(colorType == LABEL_COLOR)
         button->labelColor = color;
 
-    SDL_Texture *temp = MyTTF_RenderText_Blended(renderer, button->font, button->label, button->labelColor);
     SDL_Rect labelRect;
+    SDL_Texture *temp = MyTTF_RenderText_Blended(renderer, button->font, button->label, button->labelColor,
+                                                 &labelRect.w, &labelRect.h);
 
     if(temp == NULL)
     {
         SDL_SetError("Cannot create the texture of the label :: CopyButton().\n");
         return -1;
     }
-    SDL_QueryTexture(temp, NULL, NULL, &labelRect.w, &labelRect.h);
     labelRect.x = (button->rect.w/2) - (labelRect.w/2);
     labelRect.y = (button->rect.h/2) - (labelRect.h/2);
 
@@ -253,24 +265,12 @@ int UpdateButton(AppButton *button, SDL_Renderer *renderer, SDL_Event *event)
     if(SDL_PointInRect(&cursor, &button->rect))
     {
         if(event->type == SDL_MOUSEBUTTONDOWN)
-        {
-            button->hovered = SDL_TRUE;
-            button->selected = SDL_TRUE;
             button->rectToDraw.x = button->rect.w * 2;
-        }
         else
-        {
-            button->hovered = SDL_TRUE;
-            button->selected = SDL_FALSE;
             button->rectToDraw.x = button->rect.w;
-        }
     }
-    else if(event->type == SDL_MOUSEMOTION && !SDL_PointInRect(&cursor, &button->rect))
-    {
-        button->hovered = SDL_FALSE;
-        button->selected = SDL_FALSE;
+    else if(event->type == SDL_MOUSEMOTION)
         button->rectToDraw.x = 0;
-    }
 
     SDL_RenderCopy(renderer, button->texture, &button->rectToDraw, &button->rect);
 
@@ -278,7 +278,7 @@ int UpdateButton(AppButton *button, SDL_Renderer *renderer, SDL_Event *event)
 }
 
 SDL_bool IsHovered(AppButton *button)
-{
+{/*
     if(button == NULL)
         return SDL_FALSE;
 
@@ -287,7 +287,7 @@ SDL_bool IsHovered(AppButton *button)
         button->hovered = SDL_FALSE;
         return SDL_TRUE;
     }
-
+*/
     return SDL_FALSE;
 }
 
@@ -300,10 +300,7 @@ SDL_bool IsSelected(AppButton *button)
     SDL_GetMouseState(&cursor.x, &cursor.y);
 
     if(SDL_PointInRect(&cursor, &button->rect))
-    {
-        button->selected = SDL_FALSE;
         return SDL_TRUE;
-    }
 
     return SDL_FALSE;
 }

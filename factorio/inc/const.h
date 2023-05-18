@@ -44,7 +44,7 @@
 #define NUMBERBUTTON_W 160
 #define NUMBERBUTTON_H 60
 
-#define TOTAL_BUTTONS 16
+#define TOTAL_BUTTONS 15
 #define TOTAL_GROUP1_BUTTONS 14 //the buttons of group1 is the button in composed of the numerics, the decimal and fraction button
 #define TOTAL_GROUP2_BUTTONS 2 //the buttons "factoriser" and "reset"
 

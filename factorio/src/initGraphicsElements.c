@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "../inc/mySDLfunc.h"
 #include "../inc/const.h"
 #include "../inc/AppButton.h"
 #include "../inc/initGraphicalsElements.h"
@@ -10,7 +11,7 @@ SDL_Point buttonsPositions[TOTAL_BUTTONS];
 
 void calculateButtonsPositions()
 {
-    for(int i = 0; i < TOTAL_BUTTONS; i++)
+    for(int i = 0; i < TOTAL_BUTTONS - 1; i++)
     {
         if(i == 0 || i == 10)
             buttonsPositions[i].y = SCREEN_HEIGHT - NUMBERBUTTON_H;
@@ -31,6 +32,7 @@ void calculateButtonsPositions()
         else if(i == 10 || i == 11 || i == 12 || i == 13)
             buttonsPositions[i].x = 3*NUMBERBUTTON_W;
     }
+    buttonsPositions[14] = (SDL_Point){513, 17};
 }
 
 int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
@@ -44,7 +46,11 @@ int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Fo
         button[i] = CreateButton(i != 0 ? NUMBERBUTTON_W : NUMBERBUTTON_W * 3, NUMBERBUTTON_H, label, font);
         if(button[i] == NULL)
             return -1;
-        CopyButton(button[i], renderer, buttonsPositions[i]);
+        if(CopyButton(button[i], renderer, buttonsPositions[i]) < 0)
+        {
+            FreeButton(button[i]);
+            return -1;
+        }
     }
 
     return 0;
@@ -77,21 +83,33 @@ int initOperatorButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_
         button[i] = CreateButton(NUMBERBUTTON_W, NUMBERBUTTON_H, label, font);
         if(button[i] == NULL)
             return -1;
-        CopyButton(button[i], renderer, buttonsPositions[i+10]);
+        if(CopyButton(button[i], renderer, buttonsPositions[i+10]) < 0)
+        {
+            FreeButton(button[i]);
+            return -1;
+        }
     }
 
     return 0;
 }
 
-int initOthersButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
+int initResetButton(AppButton **button, SDL_Renderer *renderer, TTF_Font *font)
 {
-    for(int i = 0; i < len; i++)
+    *button = CreateButton(60, 56, "Reset", font);
+
+    if(*button == NULL)
+        return -1;
+
+    if(CopyButton(*button, renderer, buttonsPositions[14]) < 0)
     {
-        button[i] = CreateButton(100, 40, i == 0 ? "Factorise" : "Reset", font);
-        if(button[i] == NULL)
-            return -1;
-        CopyButton(button[i], renderer, (SDL_Point){513, 25});
+        FreeButton(*button);
+        return -1;
     }
+
+    if(SetButtonColor(*button, renderer, MySDL_COLORWHITE(128), DEFAULT_COLOR) < 0 ||
+    SetButtonColor(*button, renderer, MySDL_COLORWHITE(200), HOVER_COLOR) < 0 ||
+    SetButtonColor(*button, renderer, MySDL_COLORBLUE(255), ACTIVE_COLOR) < 0)
+        return 1;
 
     return 0;
 }

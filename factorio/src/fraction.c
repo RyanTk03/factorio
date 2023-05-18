@@ -187,6 +187,11 @@ Fraction DecimalToFraction(double decimal)
     return result;
 }
 
+SDL_bool Fraction_IsInteger(Fraction *f)
+{
+    return fmod(Fraction_GetValue(f), 1.0) == 0;
+}
+
 int PGCD(int a, int b)
 {
     if(a == 0 || b == 0)
@@ -213,12 +218,12 @@ SDL_Texture* RenderFraction(SDL_Renderer *renderer, TTF_Font *font, Fraction *fr
 
     //Render first the numerator
     snprintf( label, MAXNUMBERCHAR, withSign ? "%+d" : "%d", withSign ? Fraction_GetNum(fraction) : abs(Fraction_GetNum(fraction)));
-    SDL_Texture *temp1 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255));
+    SDL_Texture *temp1 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w1, &h1);
     SDL_QueryTexture(temp1, NULL, NULL, &w1, &h1);
 
     //Render the denominator now
     snprintf( label, MAXNUMBERCHAR, "%d", abs( Fraction_GetDen(fraction) ) );
-    SDL_Texture *temp2 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255));
+    SDL_Texture *temp2 = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w2, &h2);
     SDL_QueryTexture(temp2, NULL, NULL, &w2, &h2);
 
     w = (w1 > w2 ? w1 : w2);

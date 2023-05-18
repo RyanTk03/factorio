@@ -31,6 +31,7 @@ Fraction Fraction_Pow(Fraction f, int p);
 Fraction Fraction_Sqrt(Fraction f);
 void Fraction_Reduce(Fraction *f);
 Fraction DecimalToFraction(double decimal);
+SDL_bool Fraction_IsInteger(Fraction *f);
 int PGCD(int a, int b);
 SDL_Texture* RenderFraction(SDL_Renderer *renderer, TTF_Font *font, Fraction *fraction, SDL_bool withSign);
 

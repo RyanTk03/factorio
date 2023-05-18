@@ -58,15 +58,12 @@
 		</ExtraCommands>
 		<Unit filename="inc/AppButton.h" />
 		<Unit filename="inc/const.h" />
-		<Unit filename="inc/drawFunc.h" />
 		<Unit filename="inc/fraction.h" />
 		<Unit filename="inc/initGraphicalsElements.h" />
 		<Unit filename="inc/mySDLfunc.h" />
-		<Unit filename="inc/polynome.h" />
+		<Unit filename="inc/polynomial.h" />
+		<Unit filename="inc/updateFuncts.h" />
 		<Unit filename="src/AppButton.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/drawFunc.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/fraction.c">
@@ -81,7 +78,10 @@
 		<Unit filename="src/mySDLfunc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/polynome.c">
+		<Unit filename="src/polynomial.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/updatesFuncts.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>

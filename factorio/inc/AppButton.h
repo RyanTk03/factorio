@@ -16,8 +16,6 @@ typedef struct
     SDL_Color hoveredColor;
     SDL_Color activeColor;
     SDL_Color labelColor;
-    SDL_bool selected;
-    SDL_bool hovered;
     char label[MAX_LABEL_SIZE];
 } AppButton;
 
