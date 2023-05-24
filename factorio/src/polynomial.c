@@ -7,10 +7,11 @@
 
 Polynomial* Polynomial_Create()
 {
-    Polynomial *p = malloc(sizeof p);
+    Polynomial *p = malloc(sizeof(Polynomial));
 
     if(p == NULL)
         return NULL;
+
 
     p->discriminant = CreateFraction();
 
@@ -214,13 +215,28 @@ int Polynomial_Render(SDL_Renderer *renderer, TTF_Font *font, Polynomial *p)
 
 int Polynomial_DrawGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Point origin)
 {
-    SDL_FPoint point;
-    for (int i = -320; i < 320; i++)
+    float min_y = GRAPH_Y, max_y = GRAPH_Y + GRAPH_HEIGHT;
+     float scale_y;
+    SDL_FPoint points[640];
+    for(int i = -320; i < 320; i++)
     {
-        point.x = origin.x + i;
-        point.y = origin.y - ((GRAPH_HEIGHT / 2) * SDL_pow(((Fraction_GetValue(p->coefficients[0]) * pow(i, 2)) +
-                   (Fraction_GetValue(p->coefficients[1]) * i) + Fraction_GetValue(p->coefficients[2])) / (GRAPH_HEIGHT / 2), 0.5));
-        if(SDL_RenderDrawPointF(renderer, point.x, point.y) < 0)
+        points[i + 320].x = origin.x + i;
+        points[i + 320].y = (Fraction_GetValue(p->coefficients[0]) * pow(i, 2)) +
+                   (Fraction_GetValue(p->coefficients[1]) * i) + Fraction_GetValue(p->coefficients[2]);
+
+        if(points[i + 320].y < min_y)
+            min_y = points[i + 320].y;
+        if(points[i + 320].y > max_y)
+            max_y = points[i + 320].y;
+    }
+
+    scale_y = (float)GRAPH_HEIGHT / (fabs(origin.y - max_y) < fabs(origin.y - min_y) ? fabs(origin.y - max_y) : fabs(origin.y - min_y));
+
+    for(int i = 0; i < 640; i++)
+    {
+        points[i].y *= scale_y;
+        points[i].y = origin.y - points[i].y;
+        if(SDL_RenderDrawPointF(renderer, points[i].x, points[i].y) < 0)
             return -1;
     }
 

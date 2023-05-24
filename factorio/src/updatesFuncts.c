@@ -7,7 +7,31 @@
 #include "../inc/fraction.h"
 #include "../inc/polynomial.h"
 
-void updateRenderer(EditSettings *edit)
+
+void initEditState(EditState *edit, SDL_Renderer *renderer, TTF_Font *font,
+                   Polynomial *p, SDL_Texture *polynomialTexture,
+                   SDL_Rect *cursor)
+{
+    edit->activeInput = INPUT_A;
+
+    for(int i = 0; i < 3; i++)
+    {
+        edit->inputsTexts[i][0] = '+';
+        edit->inputsTexts[i][1] = '0';
+        edit->inputsTexts[i][2] = '\0';
+
+        edit->isFraction[i] = SDL_FALSE;
+        edit->writtingNumerator[i] = SDL_TRUE;
+    }
+
+    edit->renderer = renderer;
+    edit->polynomial = p;
+    edit->polynomialTexture = polynomialTexture;
+    edit->cursorRect = cursor;
+    edit->font = font;
+}
+
+void updateRenderer(EditState *edit)
 {
     //Filling window with the background color
     SDL_SetRenderDrawColor(edit->renderer, BACKGROUND_COLOR_COMPOSANT);
@@ -91,7 +115,7 @@ void updateRenderer(EditSettings *edit)
 
 }
 
-void updatePolynomial(char value, EditSettings *edit)
+void updatePolynomial(char value, EditState *edit)
 {
     if(value == ',')
         value = '.';
@@ -189,7 +213,7 @@ void updatePolynomial(char value, EditSettings *edit)
     Polynomial_Factorise(edit->polynomial);
 }
 
-void updateCursor(SDL_Point *mousePosition, EditSettings *edit)
+void updateCursor(SDL_Point *mousePosition, EditState *edit)
 {
     if(mousePosition == NULL)
         edit->cursorRect->x = INPUTS_RECTS[edit->activeInput].x + INPUTS_RECTS[edit->activeInput].w - INPUTS_PADDING;
@@ -228,7 +252,7 @@ void updateCursor(SDL_Point *mousePosition, EditSettings *edit)
     }
 }
 
-void flashingCursor(EditSettings *edit)
+void flashingCursor(EditState *edit)
 {
     //drawing the cursor
     static int currentTime = 0, lastTime = 0;

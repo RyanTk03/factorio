@@ -7,7 +7,7 @@
 
 Fraction* CreateFraction()
 {
-    Fraction *f = malloc(sizeof (Fraction*));
+    Fraction *f = malloc(sizeof(Fraction));
 
     f->num = 0;
     f->den = 1;

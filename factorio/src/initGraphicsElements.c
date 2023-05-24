@@ -7,9 +7,7 @@
 #include "../inc/initGraphicalsElements.h"
 
 
-SDL_Point buttonsPositions[TOTAL_BUTTONS];
-
-void calculateButtonsPositions()
+void calculateButtonsPositions(SDL_Point *buttonsPositions)
 {
     for(int i = 0; i < TOTAL_BUTTONS - 1; i++)
     {
@@ -35,7 +33,8 @@ void calculateButtonsPositions()
     buttonsPositions[14] = (SDL_Point){513, 17};
 }
 
-int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
+int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer,
+                     TTF_Font *font, SDL_Point *buttonsPositions)
 {
     char label[2];
 
@@ -56,7 +55,8 @@ int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Fo
     return 0;
 }
 
-int initOperatorButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_Font *font)
+int initOperatorButton(AppButton **button, int len, SDL_Renderer *renderer,
+                       TTF_Font *font, SDL_Point *buttonsPositions)
 {
     char *label = NULL;
 
@@ -93,7 +93,8 @@ int initOperatorButton(AppButton **button, int len, SDL_Renderer *renderer, TTF_
     return 0;
 }
 
-int initResetButton(AppButton **button, SDL_Renderer *renderer, TTF_Font *font)
+int initResetButton(AppButton **button, SDL_Renderer *renderer, TTF_Font *font,
+                    SDL_Point *buttonsPositions)
 {
     *button = CreateButton(60, 56, "Reset", font);
 

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
 
 #include "../inc/AppButton.h"
 #include "../inc/initGraphicalsElements.h"
@@ -17,46 +16,52 @@ int main(int argc, char * argv[])
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0 || TTF_Init() != 0)
     {
-        fprintf(stderr, "main(int, char**): Erreur lors de l'initialisation de la SDL(%s).", SDL_GetError());
+        fprintf(stderr, "main(int, char**): Erreur lors de l'initialisation"
+                " de la SDL(%s).", SDL_GetError());
         return exit_statut;
     }
 
-    SDL_Window *appWindow = SDL_CreateWindow("Factorio", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);;
-    SDL_Renderer *appRenderer = SDL_CreateRenderer(appWindow, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Window *appWindow = SDL_CreateWindow("Factorio", SDL_WINDOWPOS_CENTERED,
+                                            SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,
+                                             SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 
-    SDL_Rect cursorRect = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
-                            INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR1_HEIGHT / 2), 1, CURSOR1_HEIGHT};
+    SDL_Renderer *appRenderer = SDL_CreateRenderer(appWindow, -1,
+                                                   SDL_RENDERER_ACCELERATED);
+
+    SDL_Texture *polynomialTexture = SDL_CreateTexture(appRenderer,
+                                                       SDL_PIXELFORMAT_RGBA8888,
+                                                       SDL_TEXTUREACCESS_TARGET,
+                                                       INPUT_WIDTH * 3, INPUT_HEIGHT - 2);
+
     TTF_Font *font = TTF_OpenFont("tahoma.ttf", 15);
 
-    //The button of the app
+    SDL_Rect cursor = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
+                           INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR1_HEIGHT / 2),
+                           1,
+                           CURSOR1_HEIGHT};
+
     AppButton *numberButton[10] = {};
     AppButton *operatorButton[4] = {};
     AppButton *resetButton = NULL;
+    SDL_Point buttonsPositions[TOTAL_BUTTONS];
 
-    //The polynomial to factorize
-    Polynomial *polynomial = Polynomial_Create();
+    calculateButtonsPositions(buttonsPositions);
 
-    SDL_Texture *polynomialTexture = SDL_CreateTexture(appRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-                                                        INPUT_WIDTH * 3, INPUT_HEIGHT - 2);
-
-    //Contains all the edits settings(the input which is modified, the cursor rect, if an input contains a fraction)
-    EditSettings edit = {.activeInput = INPUT_A, .isFraction = {SDL_FALSE, SDL_FALSE, SDL_FALSE},
-                         .writtingNumerator = {SDL_TRUE, SDL_TRUE, SDL_TRUE}, .cursorRect = &cursorRect, .polynomial = polynomial,
-                         .renderer = appRenderer, .inputsTexts = {{"+0"}, {"+0"}, {"+0"}}, .font = font, .polynomialTexture = polynomialTexture};
-
-    SDL_SetRenderDrawColor(appRenderer, BACKGROUND_COLOR_COMPOSANT);
-    SDL_RenderClear(appRenderer);
-
-    //Fill the static global array in "initGraphicsElements.c". Is is an array of SDL_Point for the position of the button
-    calculateButtonsPositions();
-
-    if(initNumberButton(numberButton, 10, appRenderer, font) < 0 ||
-       initOperatorButton(operatorButton, 4, appRenderer, font) < 0 ||
-       initResetButton(&resetButton, appRenderer, font) < 0)
+    if(initNumberButton(numberButton, 10, appRenderer, font, buttonsPositions) < 0 ||
+       initOperatorButton(operatorButton, 4, appRenderer, font, buttonsPositions) < 0 ||
+       initResetButton(&resetButton, appRenderer, font, buttonsPositions) < 0)
     {
         printf("Erreur : %s \n", SDL_GetError());
         goto EXIT_TAG;
     }
+
+    Polynomial *polynomial = Polynomial_Create();
+
+    EditState edit;
+    initEditState(&edit, appRenderer, font, polynomial, polynomialTexture, &cursor);
+
+    SDL_SetRenderDrawColor(appRenderer, BACKGROUND_COLOR_COMPOSANT);
+    SDL_RenderClear(appRenderer);
 
     SDL_RenderPresent(appRenderer);
 
@@ -66,7 +71,7 @@ int main(int argc, char * argv[])
     SDL_bool quit = SDL_FALSE;
     while(!quit)
     {
-        SDL_WaitEvent(&event);
+        SDL_WaitEventTimeout(&event, 1000);
         switch(event.type)
         {
             case SDL_QUIT:
@@ -166,7 +171,6 @@ int main(int argc, char * argv[])
         //Draw background element of the app
         updateRenderer(&edit);
 
-        //Fake an blinking cursor
         flashingCursor(&edit);
 
         //Update the button
