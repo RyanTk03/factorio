@@ -3,189 +3,179 @@
 #include <math.h>
 
 #include "../inc/polynomial.h"
+#include "../inc/Input.h"
 #include "../inc/const.h"
 
-Polynomial* Polynomial_Create()
+Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_Rect *graphRect, int charWidth)
 {
     Polynomial *p = malloc(sizeof(Polynomial));
 
-    if(p == NULL)
-        return NULL;
-
-
-    p->discriminant = CreateFraction();
-
-    for(int i = 0; i < 3 ; i++)
+    if(p != NULL)
     {
-        p->coefficients[i] = CreateFraction();
+        p->result.rect = *resultRect;
 
-        if(i < 2)
-            p->roots[i] = CreateFraction();
+        p->graph.rect = *graphRect;
+        p->graph.viewStart.x = -(graphRect->w / 2);
+        p->graph.viewStart.y = graphRect->h / 2;
+
+        p->result.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                                              SDL_TEXTUREACCESS_TARGET, ((charWidth * 18) * 3) + (charWidth * 3), resultRect->h);
+
+        for(int i = 0; i < 3; i++)
+        {
+            p->coefficients[i] = 0;
+            if(i < 2)
+                p->roots[i] = 0;
+        }
     }
 
     return p;
 }
 
 
-void Polynomial_ComputeDiscriminant(Polynomial *p, Fraction *f)
+void Polynomial_ComputeDiscriminant(Polynomial *p, double *d)
 {
-    *p->discriminant = DecimalToFraction( pow(Fraction_GetValue(p->coefficients[1]), 2) -
-                                          (4 * Fraction_GetValue(p->coefficients[0]) * Fraction_GetValue(p->coefficients[2])) );
+    p->discriminant = pow(p->coefficients[1], 2) - (4 * p->coefficients[0] * p->coefficients[2]);
 
-    if(f != NULL)
-        *f = *p->discriminant;
+    if(d != NULL)
+        *d = p->discriminant;
 }
 
-void Polynomial_ComputeRoots(Polynomial *p, Fraction *f)
+void Polynomial_ComputeRoots(Polynomial *p, double *r, int n)
 {
-    double d = Fraction_GetValue(p->discriminant);
-
-    if(d < 0)
+    if(p->discriminant < 0)
         return;
 
-    for(int i = 0; i < (d == 0 ? 1 : 2); i++)
-    {
-        if(i == 0)
-            *p->roots[i] = DecimalToFraction((- Fraction_GetValue(p->coefficients[1]) -
-                                    sqrt(Fraction_GetValue(p->discriminant))) / (2 * Fraction_GetValue(p->coefficients[0])));
+    p->roots[0] = (- p->coefficients[1] - sqrt(p->discriminant)) / (2 * p->coefficients[0]);
+    if(r != NULL && n >= 1)
+        r[0] = p->roots[0];
 
-        else
-            *p->roots[i] = DecimalToFraction((- Fraction_GetValue(p->coefficients[1]) +
-                                    sqrt(Fraction_GetValue(p->discriminant))) / (2 * Fraction_GetValue(p->coefficients[0])));
-        if(f != NULL)
-            f[i] = *p->roots[i];
+    if(p->discriminant > 0)
+    {
+        p->roots[1] = (- p->coefficients[1] + sqrt(p->discriminant)) / (2 * p->coefficients[0]);
+        if(r != NULL && n > 1)
+            r[1] = p->roots[1];
     }
 }
 
 void Polynomial_Factorise(Polynomial *p)
 {
     //Only if a != 0
-    if(Fraction_GetValue(p->coefficients[0]) != 0)
+    if(p->coefficients[0] != 0)
     {
         Polynomial_ComputeDiscriminant(p, NULL);
-        Polynomial_ComputeRoots(p, NULL);
+        Polynomial_ComputeRoots(p, NULL, 0);
     }
 }
 
-int Polynomial_Render(SDL_Renderer *renderer, TTF_Font *font, Polynomial *p)
+int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, int c, int posX)
 {
-    char label[MAXNUMBERCHAR + 7];
+    if(p->coefficients[c] != 0)
+    {
+        SDL_Texture *temp = NULL;
+        char label[INPUT_MAX_CHARACTER + 4];
+        int y, w, h;
 
+        if(fmod(p->coefficients[c], 1.0) == 0)//If the coefficient is an integer
+        {
+            snprintf(label, INPUT_MAX_CHARACTER + 4, "%+g%s", p->coefficients[c], c == 0 ? "x²" : c == 1 ? "x" : "\0");
+            temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
+            y = (p->result.rect.h / 2) - (h / 2);
+            SDL_RenderCopy(renderer, temp, &p->result.rect, &(SDL_Rect){posX, y, w, h});
+            SDL_DestroyTexture(temp);
+        }
+        else //It will be render as a fraction
+        {
+            //first, render the coefficient as a fraction.
+            Fraction f;
+            DecimalToFraction(p->coefficients[c], &f);
+            temp = RenderFraction(renderer, font, &f, SDL_TRUE, &w, &h);
+            y = (p->result.rect.h / 2) - (h / 2);
+            SDL_RenderCopy(renderer, temp, &p->result.rect, &(SDL_Rect){posX, y, w, h});
+            SDL_DestroyTexture(temp);
+            posX += w;
+
+            //now render the literal
+            snprintf(label, 3, "%s", c == 0 ? "x²" : c == 1 ? "x" : "\0");
+            temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
+            y = (p->result.rect.h / 2) - (h / 2);
+            SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){posX, y, w, h});
+            SDL_DestroyTexture(temp);
+        }
+        return posX + w;
+    }
+
+    return posX;
+}
+
+void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font)
+{
+    char label[INPUT_MAX_CHARACTER + 9];// + 9 because of the other character like (, ), x, x² and the space.
     int x = 0, y = 0, w = 0, h = 0;
+
+    SDL_Texture *target = SDL_GetRenderTarget(renderer);
+    SDL_SetRenderTarget(renderer, p->result.texture);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    SDL_Texture *temp;
 
     int i = 0;
-    if(Fraction_GetValue(p->coefficients[0]) == 0 || Fraction_GetValue(p->discriminant) < 0)
-    {
-        while(p->coefficients[i] != NULL && i < 3)
+
+    // If the polynomial is not factorisable, or is not of degree 2
+    if(p->coefficients[0] == 0 || p->discriminant < 0)
+    {// Render the polynomial in primary form(render the coefficient and x or x²)
+        while(i < 3)
         {
-            if(Fraction_GetValue(p->coefficients[i]) != 0)
-            {
-                if(Fraction_IsInteger(p->coefficients[i]))
-                {
-                    snprintf(label, MAXNUMBERCHAR + 7, "%+g%s", Fraction_GetValue(p->coefficients[i]), i == 0 ? "x²" : i == 1 ? "x" : "\0");
-                    x = w;
-                    temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                    SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                    SDL_DestroyTexture(temp);
-                }
-                else
-                {
-                    temp = RenderFraction(renderer, font, p->coefficients[i], SDL_TRUE);
-                    x += w;
-                    SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                    SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                    SDL_DestroyTexture(temp);
-
-                    snprintf(label, 3, "%s", i == 0 ? "x²" : i == 1 ? "x" : "\0");
-                    x += w;
-                    temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                    SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                    SDL_DestroyTexture(temp);
-                }
-            }
-
-            w = x + w; //update the row's width
+            x = Polynomial_DrawCoefficient(p, renderer, font, i, x);
+            w = x;
             i++;
         }
     }
     else
-    {
-        if(Fraction_GetValue(p->coefficients[0]) != 1)//printing 1 is not necessary
+    {// Render the factorised form.
+        // First, write the coefficient[0] (a).
+        if(p->coefficients[0] != 1)//printing 1 is not necessary
         {
-            if(Fraction_IsInteger(p->coefficients[0]))
-            {
-                snprintf(label, MAXNUMBERCHAR + 7, "%g", Fraction_GetValue(p->coefficients[0]));
-                x = w;
-                temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                SDL_DestroyTexture(temp);
-            }
-            else
-            {
-                temp = RenderFraction(renderer, font, p->coefficients[0], SDL_TRUE);
-                x += w;
-                SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                SDL_DestroyTexture(temp);
-                if(Fraction_GetValue(p->discriminant) == 0)
-                {
-                    x += w;
-                    temp = MyTTF_RenderText_Blended(renderer, font, "x", MySDL_COLORBLACK(255), &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
-                    SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
-                    SDL_DestroyTexture(temp);
-                }
-            }
-            w = x + w; //update the row's width
+            x = Polynomial_DrawCoefficient(p, renderer, font, 0, x);
+            w = x;
         }
 
-        while(p->roots[i] != NULL && i < 2)
+        SDL_Texture *temp;
+        while(i < 2)
         {
-            if(Fraction_GetValue(p->roots[i]) != 0)
+            if(p->roots[i] != 0)
             {
-                if(Fraction_IsInteger(p->roots[i]))
+                if(fmod(p->roots[i], 1.0) == 0)
                 {
-                    snprintf(label, MAXNUMBERCHAR + 7, "( x %+g )%c", -Fraction_GetValue(p->roots[i]), Fraction_GetValue(p->discriminant) == 0 ? '²' : '\0');
+                    snprintf(label, INPUT_MAX_CHARACTER + 9, "( x %+g )%c", -p->roots[i], p->discriminant == 0 ? '²' : '\0');
                     x = w;
                     temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                    SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
+                    y = (p->result.rect.h / 2) - (h / 2);
                     SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
                     SDL_DestroyTexture(temp);
                 }
                 else
                 {
-                    snprintf(label, MAXNUMBERCHAR + 5, "( x %c ", Fraction_GetValue(p->roots[i]) < 0 ? '+' : '-');
+                    snprintf(label, MAXNUMBERCHAR + 5, "( x %c ", p->roots[i] < 0 ? '+' : '-');
                     x = w;
                     temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                    SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
+                    y = (p->result.rect.h / 2) - (h / 2);
                     SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
                     SDL_DestroyTexture(temp);
 
-                    temp = RenderFraction(renderer, font, p->roots[i], SDL_FALSE);
+                    Fraction f;
+                    DecimalToFraction(p->roots[i], &f);
                     x += w;
-                    SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
+                    temp = RenderFraction(renderer, font, &f, SDL_FALSE, &w, &h);
+                    y = (p->result.rect.h / 2) - (h / 2);
                     SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
                     SDL_DestroyTexture(temp);
 
                     x += w;
-                    snprintf(label, MAXNUMBERCHAR + 7, " )%c", Fraction_GetValue(p->discriminant) == 0 ? '²' : '\0');
+                    snprintf(label, 4, " )%c", p->discriminant == 0 ? '²' : '\0');
                     temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                    SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                    y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
+                    y = (p->result.rect.h / 2) - (h / 2);
                     SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
                     SDL_DestroyTexture(temp);
                 }
@@ -193,10 +183,9 @@ int Polynomial_Render(SDL_Renderer *renderer, TTF_Font *font, Polynomial *p)
             else
             {
                 x = w;
-                snprintf(label, MAXNUMBERCHAR + 7, "(x)%c", Fraction_GetValue(p->discriminant) == 0 ? '²' : '\0');
+                snprintf(label, MAXNUMBERCHAR + 7, "(x)%c", p->discriminant == 0 ? '²' : '\0');
                 temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-                SDL_QueryTexture(temp, NULL, NULL, &w, &h);
-                y = ((INPUT_HEIGHT - 2) / 2) - (h / 2);
+                y = (p->result.rect.h / 2) - (h / 2);
                 SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
                 SDL_DestroyTexture(temp);
             }
@@ -204,57 +193,176 @@ int Polynomial_Render(SDL_Renderer *renderer, TTF_Font *font, Polynomial *p)
             w = x + w; //update the row's width
             i++;
 
-            if(Fraction_GetValue(p->discriminant) == 0)
+            if(p->discriminant == 0)
                 break;
         }
     }
 
-    return w;
+    SDL_SetRenderTarget(renderer, target);
 
+    p->result.totalSize.x = w;
 }
 
-int Polynomial_DrawGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Point origin)
+void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, SDL_Event *event, SDL_bool wasModified)
 {
-    float min_y = GRAPH_Y, max_y = GRAPH_Y + GRAPH_HEIGHT;
-     float scale_y;
-    SDL_FPoint points[640];
-    for(int i = -320; i < 320; i++)
+    if(wasModified)
     {
-        points[i + 320].x = origin.x + i;
-        points[i + 320].y = (Fraction_GetValue(p->coefficients[0]) * pow(i, 2)) +
-                   (Fraction_GetValue(p->coefficients[1]) * i) + Fraction_GetValue(p->coefficients[2]);
-
-        if(points[i + 320].y < min_y)
-            min_y = points[i + 320].y;
-        if(points[i + 320].y > max_y)
-            max_y = points[i + 320].y;
+        Polynomial_Factorise(p);
+        Polynomial_RenderResult(p, renderer, font);
     }
 
-    scale_y = (float)GRAPH_HEIGHT / (fabs(origin.y - max_y) < fabs(origin.y - min_y) ? fabs(origin.y - max_y) : fabs(origin.y - min_y));
 
-    for(int i = 0; i < 640; i++)
+    if(event->type == SDL_MOUSEBUTTONDOWN && SDL_PointInRect(&(SDL_Point){event->button.x, event->button.y}, &p->result.rect)
+       && p->result.totalSize.x > p->result.rect.w)
     {
-        points[i].y *= scale_y;
-        points[i].y = origin.y - points[i].y;
-        if(SDL_RenderDrawPointF(renderer, points[i].x, points[i].y) < 0)
-            return -1;
+        p->result.hasFocus = SDL_TRUE;
+        SDL_bool quit = SDL_FALSE;
+
+        while(!quit)
+        {
+            SDL_WaitEvent(event);
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONUP:
+                    quit = SDL_TRUE;
+                    break;
+
+                case SDL_MOUSEMOTION:
+                    p->result.viewStart.x -= event->motion.xrel;
+                    if(p->result.viewStart.x < 0)
+                        p->result.viewStart.x = 0;
+                    else if(p->result.viewStart.x > p->result.totalSize.x - p->result.rect.w)
+                        p->result.viewStart.x = p->result.totalSize.x - p->result.rect.w;
+                    break;
+            }
+            SDL_RenderCopy(renderer, p->result.texture,
+                           &(SDL_Rect){p->result.viewStart.x, 0, p->result.rect.w, p->result.rect.h},
+                            &(SDL_Rect){p->result.rect.x, p->result.rect.y, p->result.rect.w, p->result.rect.h});
+
+            SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+            SDL_RenderDrawRect(renderer, &p->result.rect);
+        }
+        return;
+    }
+    else if(event->type == SDL_MOUSEBUTTONDOWN &&
+            !SDL_PointInRect(&(SDL_Point){event->button.x, event->button.y}, &p->result.rect))
+    {
+        p->result.hasFocus = SDL_FALSE;
+    }
+    else if(p->result.hasFocus && event->type == SDL_KEYDOWN)
+    {
+        if(event->key.keysym.sym == SDLK_LEFT)
+            p->result.viewStart.x -= 10;
+        else if(event->key.keysym.sym == SDLK_RIGHT)
+            p->result.viewStart.x += 10;
+
+        if(p->result.viewStart.x < 0)
+            p->result.viewStart.x = 0;
+        else if(p->result.viewStart.x > p->result.totalSize.x - p->result.rect.w)
+            p->result.viewStart.x = p->result.totalSize.x - p->result.rect.w;
+    }
+
+    if(p->result.totalSize.x <= p->result.rect.w)
+    {
+        SDL_RenderCopy(renderer, p->result.texture, NULL,
+                       &(SDL_Rect){p->result.rect.x + (p->result.rect.w / 2) - (p->result.totalSize.x / 2),
+                                  p->result.rect.y, p->result.totalSize.x, p->result.rect.h});
+    }
+    else
+    {
+        SDL_RenderCopy(renderer, p->result.texture,
+                       &(SDL_Rect){p->result.viewStart.x, 0, p->result.rect.w, p->result.rect.h},
+                       &(SDL_Rect){p->result.rect.x, p->result.rect.y, p->result.totalSize.x, p->result.rect.h});
+
+    }
+
+    if(p->result.hasFocus)
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    else
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+    SDL_RenderDrawRect(renderer, &p->result.rect);
+}
+
+void Polynomial_DrawGraphBox(Polynomial *p, SDL_Renderer *renderer)
+{
+    //Draw the graph rectangle
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &p->graph.rect);
+    SDL_SetRenderDrawColor(renderer, 195, 195, 195, 255);
+    SDL_RenderDrawRect(renderer, &p->graph.rect);
+    //Draw the graph axes
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if(p->graph.rect.y + p->graph.viewStart.y > p->graph.rect.y &&
+       p->graph.rect.y + p->graph.viewStart.y < p->graph.rect.y + p->graph.rect.h)
+        MySDL_RenderDrawHorizontalLine(renderer, p->graph.rect.x, p->graph.rect.y + p->graph.viewStart.y,
+                                        p->graph.rect.w, 1);
+
+    if(p->graph.rect.x - p->graph.viewStart.x > p->graph.rect.x &&
+       p->graph.rect.x - p->graph.viewStart.x < p->graph.rect.x + p->graph.rect.w)
+        MySDL_RenderDrawVerticalLine(renderer, p->graph.rect.x - p->graph.viewStart.x, p->graph.rect.y,
+                                        p->graph.rect.h, 1);
+
+    SDL_SetRenderTarget(renderer, NULL);
+}
+
+int Polynomial_DrawGraphPoints(Polynomial *p, SDL_Renderer *renderer)
+{
+    SDL_FPoint point;
+    for(int i = 0; i < p->graph.rect.w; i++)
+    {
+        point.x = p->graph.viewStart.x + i;
+        point.y = (p->coefficients[0] * pow(point.x, 2)) + (p->coefficients[1] * point.x) + p->coefficients[2];
+        if(SDL_PointInRect(&point, &p->graph.rect))
+            if(SDL_RenderDrawPointF(renderer, point.x, point.y) < 0)
+                return -1;
     }
 
     return 0;
 }
 
+int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *event)
+{
+    if(event->type == SDL_MOUSEBUTTONDOWN && SDL_PointInRect(&(SDL_Point){event->motion.x, event->motion.y}, &p->graph.rect))
+    {
+        SDL_bool quit = SDL_FALSE;
+
+        while(!quit)
+        {
+            SDL_WaitEvent(event);
+            switch(event->type)
+            {
+                case SDL_MOUSEBUTTONUP:
+                    quit = SDL_TRUE;
+                    break;
+
+                case SDL_MOUSEMOTION:
+                    p->graph.viewStart.x -= event->motion.xrel;
+                    p->graph.viewStart.y += event->motion.yrel;
+
+                    break;
+            }
+            if(Polynomial_DrawGraphPoints(p,renderer) < 0)
+                return -1;
+
+            Polynomial_DrawGraphBox(p, renderer);
+
+            SDL_RenderPresent(renderer);
+        }
+        return 0;
+    }
+    else
+    {
+        Polynomial_DrawGraphBox(p, renderer);
+        return Polynomial_DrawGraphPoints(p,renderer);
+    }
+}
+
 void Polynomial_Destroy(Polynomial *p)
 {
-    if(p->discriminant != NULL)
-        free(p->discriminant);
-
-    for(int i = 0; i < 3 ; i++)
+    if(p != NULL)
     {
-        if(p->coefficients[i] != NULL)
-            free(p->coefficients[i]);
-
-        if(i < 2)
-            if(p->roots[i])
-                free(p->roots[i]);
+        SDL_DestroyTexture(p->result.texture);
+        free(p);
     }
 }

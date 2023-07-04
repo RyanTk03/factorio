@@ -57,13 +57,17 @@
 			<Add after="XCOPY $(#sdl2)\bin\*.dll $(TARGET_OUTPUT_DIR) /D /Y" />
 		</ExtraCommands>
 		<Unit filename="inc/AppButton.h" />
+		<Unit filename="inc/Input.h" />
 		<Unit filename="inc/const.h" />
 		<Unit filename="inc/fraction.h" />
 		<Unit filename="inc/initGraphicalsElements.h" />
 		<Unit filename="inc/mySDLfunc.h" />
 		<Unit filename="inc/polynomial.h" />
-		<Unit filename="inc/updateFuncts.h" />
+		<Unit filename="inc/updateRenderer.h" />
 		<Unit filename="src/AppButton.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/Input.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/fraction.c">
@@ -81,7 +85,7 @@
 		<Unit filename="src/polynomial.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/updatesFuncts.c">
+		<Unit filename="src/updateRenderer.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>

@@ -7,7 +7,8 @@
 #include "../inc/const.h"
 #include "../inc/mySDLfunc.h"
 #include "../inc/polynomial.h"
-#include "../inc/updateFuncts.h"
+#include "../inc/updateRenderer.h"
+#include "../inc/Input.h"
 
 
 int main(int argc, char * argv[])
@@ -28,21 +29,44 @@ int main(int argc, char * argv[])
     SDL_Renderer *appRenderer = SDL_CreateRenderer(appWindow, -1,
                                                    SDL_RENDERER_ACCELERATED);
 
-    SDL_Texture *polynomialTexture = SDL_CreateTexture(appRenderer,
-                                                       SDL_PIXELFORMAT_RGBA8888,
-                                                       SDL_TEXTUREACCESS_TARGET,
-                                                       INPUT_WIDTH * 3, INPUT_HEIGHT - 2);
+    TTF_Font *font = TTF_OpenFont("CourierPrime.ttf", 18);
 
-    TTF_Font *font = TTF_OpenFont("tahoma.ttf", 15);
+    if(font == NULL)
+    {
+        fprintf(stderr, "Error : cannot load the font(CourierPrime.ttf)");
+        goto EXIT_TAG;
+    }
 
-    SDL_Rect cursor = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
+    /*
+        We must verify if the font is fixed width because the input system consider
+        that it is to display its content. So if it is false, there will be error in
+        displaying.
+    */
+    SDL_Point fontSize;
+    if(TTF_FontFaceIsFixedWidth(font))
+    {
+        TTF_GlyphMetrics(font, '0', NULL, NULL, NULL, NULL, &fontSize.x);
+        fontSize.y = TTF_FontHeight(font);
+        Input_Init(fontSize);
+    }
+    else
+    {
+        fprintf(stderr, "Error : the font uses have not fixed width");
+        goto EXIT_TAG;
+    }
+
+    Polynomial *polynomial = Polynomial_Create(appRenderer, &INPUT4_RECT, &GRAPH_RECT, fontSize.x);
+
+    InputCursor cursor = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
                            INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR1_HEIGHT / 2),
-                           1,
                            CURSOR1_HEIGHT};
+
+    Input *inputs[3];
 
     AppButton *numberButton[10] = {};
     AppButton *operatorButton[4] = {};
     AppButton *resetButton = NULL;
+
     SDL_Point buttonsPositions[TOTAL_BUTTONS];
 
     calculateButtonsPositions(buttonsPositions);
@@ -51,14 +75,15 @@ int main(int argc, char * argv[])
        initOperatorButton(operatorButton, 4, appRenderer, font, buttonsPositions) < 0 ||
        initResetButton(&resetButton, appRenderer, font, buttonsPositions) < 0)
     {
-        printf("Erreur : %s \n", SDL_GetError());
+        fprintf(stderr ,"Error when initializing the buttons : %s \n", SDL_GetError());
         goto EXIT_TAG;
     }
 
-    Polynomial *polynomial = Polynomial_Create();
-
-    EditState edit;
-    initEditState(&edit, appRenderer, font, polynomial, polynomialTexture, &cursor);
+    if(initInputs(inputs, appRenderer, INPUTS_RECTS, &cursor, polynomial) < 0)
+    {
+        fprintf(stderr, "Error when initializing the inputs : %s \n", SDL_GetError());
+        goto EXIT_TAG;
+    }
 
     SDL_SetRenderDrawColor(appRenderer, BACKGROUND_COLOR_COMPOSANT);
     SDL_RenderClear(appRenderer);
@@ -68,6 +93,7 @@ int main(int argc, char * argv[])
     SDL_StartTextInput();
 
     SDL_Event event;
+    InputEvent ievent;
     SDL_bool quit = SDL_FALSE;
     while(!quit)
     {
@@ -79,99 +105,86 @@ int main(int argc, char * argv[])
                 break;
 
             case SDL_TEXTINPUT:
-                //Update the coefficients value
-                updatePolynomial(event.text.text[0], &edit);
+                ievent.type = INPUT_KEYDOWN;
+                ievent.keyValue = event.text.text[0];
                 break;
 
             case SDL_KEYDOWN:
+                ievent.type = INPUT_KEYDOWN;
                 if(event.key.keysym.sym == SDLK_BACKSPACE || event.key.keysym.sym == SDLK_KP_BACKSPACE)
-                    updatePolynomial('\b', &edit);
+                    ievent.keyValue = INPUT_KBACK;
                 else if(event.key.keysym.sym == SDLK_LEFT)
                 {
-                    if(edit.activeInput - 1 != INPUT_NONE)
-                        edit.activeInput -= 1;
-                    else
-                        edit.activeInput = INPUT_C;
+                    ievent.keyValue = INPUT_KLEFT;
                 }
                 else if(event.key.keysym.sym == SDLK_RIGHT)
                 {
-                    if(edit.activeInput + 1 != INPUT_NONE)
-                    {
-                        edit.activeInput += 1;
-                        updateCursor(NULL, &edit);
-                    }
-                    else
-                    {
-                        edit.activeInput = INPUT_A;
-                        updateCursor(NULL, &edit);
-                    }
+                    ievent.keyValue = INPUT_KRIGHT;
                 }
-                else if(event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN)
+                else if(event.key.keysym.sym == SDLK_UP)
                 {
-                    if(edit.isFraction[edit.activeInput])
-                        edit.writtingNumerator[edit.activeInput] = !edit.writtingNumerator[edit.activeInput];
+                    ievent.keyValue = INPUT_KUP;
+                }
+                else if(event.key.keysym.sym == SDLK_DOWN)
+                {
+                    ievent.keyValue = INPUT_KDOWN;
                 }
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
-                updateCursor(&(SDL_Point){event.button.x, event.button.y}, &edit);
+                ievent.type = INPUT_MOUSEBUTTONDOWN;
+                ievent.mousePosition = (SDL_Point){event.button.x, event.button.y};
 
                 //Check if there is a click on a number
                 for(int i = 0; i < 10; i++)
-                    if(IsSelected(numberButton[i]))
-                        updatePolynomial(numberButton[i]->label[0], &edit);
+                    if(IsSelected(numberButton[i])) {
+                        ievent.type = INPUT_KEYDOWN;
+                        ievent.keyValue = numberButton[i]->label[0];
+                    }
 
                 //Check if there there is a click on an operator button
                 for(int i = 0; i < 4; i++)
                 {
 
-                //Check if the reset button was clicked
                     if(IsSelected(operatorButton[i]))//If once of these button was selected
                     {
                         switch(i)//Check which was
                         {
                             case 0:
-                                updatePolynomial('.', &edit);
+                                ievent.type = INPUT_KEYDOWN;
+                                ievent.keyValue = '.';
                                 break;
 
                             case 1:
-                                Fraction_SetValue(edit.polynomial->coefficients[edit.activeInput], Fraction_GetValue(edit.polynomial->coefficients[edit.activeInput]) * -1);
+                                ievent.type = INPUT_KEYDOWN;
+                                ievent.keyValue = '-';
                                 break;
 
                             case 2:
-                                edit.isFraction[edit.activeInput] = !edit.isFraction[edit.activeInput];
-                                updateCursor(&(SDL_Point){INPUTS_RECTS[edit.activeInput].x + 50, event.button.y}, &edit);
+                                ievent.type = INPUT_KEYDOWN;
+                                ievent.keyValue = INPUT_FRACTIONMOD;
                                 break;
 
                             case 3:
-                                updatePolynomial('\b', &edit);
+                                ievent.type = INPUT_KEYDOWN;
+                                ievent.keyValue = INPUT_KBACK;
                                 break;
                         }
                     }
                 }
+                //Check if the reset button was clicked
                 if(IsSelected(resetButton))
                 {
-                    free(polynomial->discriminant);
-                    for(int i = 0; i < 3; i++)
-                    {
-                        Fraction_SetValue(polynomial->coefficients[i], 0);
-                        edit.inputsTexts[i][0] = '+'; edit.inputsTexts[i][1] = '0';
-                        edit.isFraction[i] = SDL_FALSE;
-                        edit.writtingNumerator[i] = SDL_TRUE;
-                        if(i < 2)
-                        {
-                            free(polynomial->roots[i]);
-                            polynomial->roots[i] = NULL;
-                        }
-                    }
                 }
+                break;
+
+            default:
+                ievent.type = INPUT_NOEVENT;
                 break;
         }
 
         //Draw background element of the app
-        updateRenderer(&edit);
-
-        flashingCursor(&edit);
+        updateRenderer(appRenderer);
 
         //Update the button
         for(int i = 0; i < 10; i++)
@@ -179,6 +192,14 @@ int main(int argc, char * argv[])
         for(int i = 0; i < 4; i++)
             UpdateButton(operatorButton[i], appRenderer, &event);
         UpdateButton(resetButton, appRenderer, &event);
+
+        //Update the inputs
+        for(int i = 0; i < 3; i++)
+            Input_Update(inputs[i], appRenderer, font, &ievent);
+
+        //Update the polynomial
+        Polynomial_UpdateResult(polynomial, appRenderer, font, &event, SDL_TRUE);//Update the result
+        Polynomial_UpdateGraph(polynomial, appRenderer, &event);//Update the graph
 
         SDL_RenderPresent(appRenderer);
     }

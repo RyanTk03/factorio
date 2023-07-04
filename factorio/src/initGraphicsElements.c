@@ -114,3 +114,15 @@ int initResetButton(AppButton **button, SDL_Renderer *renderer, TTF_Font *font,
 
     return 0;
 }
+
+int initInputs(Input **input, SDL_Renderer *renderer, SDL_Rect *rect, InputCursor *cursor, Polynomial *p)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        input[i] = Input_Create(renderer, &rect[i], cursor, &p->coefficients[i], i == 0 ? SDL_TRUE : SDL_FALSE);
+        if(input[i] == NULL)
+            return -1;
+    }
+
+    return 0;
+}
