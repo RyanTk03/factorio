@@ -2,6 +2,7 @@
 #define POLYNOME_H_INCLUDED
 
 #include "fraction.h"
+#include "Input.h"
 
 #define POLYNOMIAL_GRAPH_W 1000
 #define POLYNOMIAL_GRAPH_H 1000
@@ -25,9 +26,9 @@ typedef struct
 ///This structure represent a polynomial.
 typedef struct
 {
-    double coefficients[3];
-    double discriminant;
-    double roots[2];
+    float coefficients[3];
+    float discriminant;
+    float roots[2];
     PolynomialResult result;
     PolynomialGraph graph;
 } Polynomial;
@@ -49,21 +50,21 @@ Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_
 * @brief Calculate the discriminant of the polynomial.
 *
 * @param Polynomial* p The polynomial which the discriminant will be compute.
-* @param double* d A pointer to fill the result of the compute in.
+* @param float* d A pointer to fill the result of the compute in.
 *
 */
-void Polynomial_ComputeDiscriminant(Polynomial *p, double *d);
+void Polynomial_ComputeDiscriminant(Polynomial *p, float *d);
 
 
 /**
 * @brief Calculate the roots of the polynomial.
 *
 * @param Polynomial* p The polynomial which the roots will be compute.
-* @param double* r An array where fill the result of the compute.
+* @param float* r An array where fill the result of the compute.
 * @param int n the size of the table.
 *
 */
-void Polynomial_ComputeRoots(Polynomial *p, double *r, int n);
+void Polynomial_ComputeRoots(Polynomial *p, float *r, int n);
 
 
 /**
@@ -84,12 +85,13 @@ void Polynomial_Factorise(Polynomial *p);
 * @param Polynomial* p The polynomial which the roots will be compute.
 * @param SDL_Renderer* renderer The renderer where draw the coefficient.
 * @param int c which coefficient to draw(0:a, 1:b, 2:c)
-* @param int ppsX The position where draw the coefficient.
+* @param int posX The position where draw the coefficient.
+* @param SDL_bool withX Define if we want to draw also the variable x
 *
 * @return The right-top position of the coefficient drawn.
 *
 */
-int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, int c, int posX);
+int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, int c, int posX, SDL_bool withX);
 
 
 /**
@@ -109,10 +111,11 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
 * @param Polynomial* p The polynomial which the result will be render.
 * @param SDL_Renderer* renderer The renderer where render the result.
 * @param SDL_Event* event Informations about the event that occurs to know how to
-*                         update the result.
+*   update the result.
+* @param InputEvent* ievent The event occurs in the inputs.
 *
 */
-void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, SDL_Event *event, SDL_bool wasModified);
+void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, SDL_Event *event, InputEvent *ievent, SDL_bool wasModified);
 
 
 /**
@@ -141,9 +144,10 @@ int Polynomial_DrawGraphPoints(Polynomial *p, SDL_Renderer *renderer);
 * @param Polynomial* p The polynomial which the result will be render.
 * @param SDL_Renderer* renderer The renderer where render the result.
 * @param SDL_Event* event The event occurs to know how update the graph.
+* @param InputEvent* ievent The event occurs in the inputs.
 *
 */
-int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *event);
+int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *event, InputEvent *ievent);
 
 
 /**

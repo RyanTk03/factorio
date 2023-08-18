@@ -2,10 +2,10 @@
 #define INPUT_H_INCLUDED
 
 #include <SDL2/SDL.h>
-#include "polynomial.h"
+#include <SDL2/SDL_ttf.h>
 
 //The maximum character in an input without sign
-#define INPUT_MAX_CHARACTER 18
+#define INPUT_MAX_CHARACTER 10
 
 #define INPUT_FRACTIONMOD 'f'
 #define INPUT_KLEFT 'l'
@@ -48,10 +48,16 @@ typedef struct
     InputCursor *cursor;
 
     ///The current position of the cursor.
-    Uint8 currentPosition;
+    Uint8 currentNumPosition;
+
+    ///The current position of the cursor.
+    Uint8 currentDenPosition;
 
     ///The data to update when the input is updated.
-    double *dataLinked;
+    float *dataLinked;
+
+    ///Inform if the input data was modified.
+    SDL_bool dataWasModified;
 
     ///The texts to print : text[0]="numerator"; text[1]="denominator".
     char text[2][INPUT_MAX_CHARACTER + 2];
@@ -67,8 +73,8 @@ typedef struct
     char keyValue;
     SDL_Point mousePosition;
     InputEventType type;
+    void *hasFocus;
 } InputEvent;
-
 
 void Input_Init(SDL_Point charSize);
 
@@ -85,7 +91,7 @@ void Input_Init(SDL_Point charSize);
 * @return A pointer to the input create.
 *
 */
-Input* Input_Create(SDL_Renderer *renderer, SDL_Rect *rect, InputCursor *cursor, double *dataLinked, SDL_bool hasFocus);
+Input* Input_Create(SDL_Renderer *renderer, SDL_Rect *rect, InputCursor *cursor, float *dataLinked, SDL_bool hasFocus);
 
 
 /**
@@ -108,5 +114,27 @@ void Input_Destroy(Input *input);
 *
 */
 void Input_Update(Input *input, SDL_Renderer *renderer, TTF_Font *font, InputEvent *event);
+
+
+/**
+* @brief Update the cursor.
+*
+* @param input(Input*) The input where update the cursor.
+* @param renderer(event*) The window renderer.
+*
+*/
+void Input_UpdateCursor(Input *input, SDL_Renderer *renderer);
+
+
+/**
+* @brief Reset the input.
+*
+* @param input(Input*) The input to reset.
+*
+*/
+void Input_Reset(Input *input);
+
+
+SDL_Texture* Input_RenderFraction(Input *input, SDL_Renderer *renderer, TTF_Font *font, int *contentWidth, int *contentHeight);
 
 #endif // INPUT_H_INCLUDED

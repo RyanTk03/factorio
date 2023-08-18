@@ -10,7 +10,7 @@ typedef struct
 {
     int num;
     int den;
-    double value;
+    float value;
 } Fraction;
 
 #define FRACT(n) (Fraction){n, 1, n}
@@ -66,10 +66,10 @@ int Fraction_GetDen(Fraction *f);
 * denominator.
 *
 * @param f(Fraction *) The fraction object whose we want to change the numerator.
-* @param value(double) The new numerator of the fraction
+* @param value(float) The new numerator of the fraction
 *
 */
-void Fraction_SetNum(Fraction *f, double value);
+void Fraction_SetNum(Fraction *f, float value);
 
 /**
 * @brief A function that set the denominator of a fraction object.
@@ -81,10 +81,10 @@ void Fraction_SetNum(Fraction *f, double value);
 * denominator.
 *
 * @param f(Fraction *) The fraction object whose we want to change the denominator.
-* @param value(double) The new denominator of the fraction
+* @param value(float) The new denominator of the fraction
 *
 */
-void Fraction_SetDen(Fraction *f, double value);
+void Fraction_SetDen(Fraction *f, float value);
 
 /**
 * @brief A function that set the value of a fraction object.
@@ -93,10 +93,10 @@ void Fraction_SetDen(Fraction *f, double value);
 * numerator and the denominator implicitly by convert the value to a fraction.
 *
 * @param f(Fraction *) The fraction object whose we want to change the value.
-* @param value(double) The new value of the fraction
+* @param value(float) The new value of the fraction
 *
 */
-void Fraction_SetValue(Fraction* f, double value);
+void Fraction_SetValue(Fraction* f, float value);
 
 /**
 * @brief A function that set the denominator of a fraction object.
@@ -112,7 +112,7 @@ void Fraction_SetValue(Fraction* f, double value);
 * @return The value of the fraction.
 *
 */
-double Fraction_GetValue(Fraction *f);
+float Fraction_GetValue(Fraction *f);
 
 /**
 * @brief A function that compute the sum of two fraction object.
@@ -258,11 +258,11 @@ void Fraction_Reduce(Fraction *f);
 /**
 * @brief A function that convert a decimal value to a fraction.
 *
-* @param decimal(double) The decimal value to convert.
+* @param decimal(float) The decimal value to convert.
 * @param f(Fraction *) The fraction object to reduce.
 *
 */
-void DecimalToFraction(double decimal, Fraction *fraction);
+void DecimalToFraction(float decimal, Fraction *fraction);
 
 /**
 * @brief A function that check if a fraction object if contains a floating.

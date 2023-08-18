@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Input.h"
+#include "polynomial.h"
 
 void calculateButtonsPositions(SDL_Point *buttonsPositions);
 

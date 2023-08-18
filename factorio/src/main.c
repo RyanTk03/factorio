@@ -6,9 +6,9 @@
 #include "../inc/initGraphicalsElements.h"
 #include "../inc/const.h"
 #include "../inc/mySDLfunc.h"
+#include "../inc/Input.h"
 #include "../inc/polynomial.h"
 #include "../inc/updateRenderer.h"
-#include "../inc/Input.h"
 
 
 int main(int argc, char * argv[])
@@ -57,9 +57,9 @@ int main(int argc, char * argv[])
 
     Polynomial *polynomial = Polynomial_Create(appRenderer, &INPUT4_RECT, &GRAPH_RECT, fontSize.x);
 
-    InputCursor cursor = {INPUT1_RECT.x + INPUT_WIDTH - INPUTS_PADDING,
-                           INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR1_HEIGHT / 2),
-                           CURSOR1_HEIGHT};
+    InputCursor cursor = {INPUT1_RECT.x + INPUT_WIDTH - INPUT_PADDING,
+                           INPUT_Y + (INPUT_HEIGHT / 2) - (CURSOR_HEIGHT / 2),
+                           CURSOR_HEIGHT};
 
     Input *inputs[3];
 
@@ -104,12 +104,8 @@ int main(int argc, char * argv[])
                 quit = SDL_TRUE;
                 break;
 
-            case SDL_TEXTINPUT:
-                ievent.type = INPUT_KEYDOWN;
-                ievent.keyValue = event.text.text[0];
-                break;
-
             case SDL_KEYDOWN:
+            case SDL_TEXTINPUT:
                 ievent.type = INPUT_KEYDOWN;
                 if(event.key.keysym.sym == SDLK_BACKSPACE || event.key.keysym.sym == SDLK_KP_BACKSPACE)
                     ievent.keyValue = INPUT_KBACK;
@@ -129,6 +125,18 @@ int main(int argc, char * argv[])
                 {
                     ievent.keyValue = INPUT_KDOWN;
                 }
+                else if(event.key.keysym.sym == SDLK_f)
+                {
+                    ievent.keyValue = INPUT_FRACTIONMOD;
+                }
+                else if(event.key.keysym.sym == SDLK_r)
+                {
+                    for(int i = 0; i < 3; i++)
+                        Input_Reset(inputs[i]);
+                }
+                else
+                    ievent.keyValue = event.text.text[0];
+
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -145,7 +153,6 @@ int main(int argc, char * argv[])
                 //Check if there there is a click on an operator button
                 for(int i = 0; i < 4; i++)
                 {
-
                     if(IsSelected(operatorButton[i]))//If once of these button was selected
                     {
                         switch(i)//Check which was
@@ -175,6 +182,20 @@ int main(int argc, char * argv[])
                 //Check if the reset button was clicked
                 if(IsSelected(resetButton))
                 {
+                    for(int i = 0; i < 3; i++)
+                        Input_Reset(inputs[i]);
+                }
+
+                //Check if another input was clicked
+                for(int i = 0; i < 3; i++)
+                {
+                    if(SDL_PointInRect(&ievent.mousePosition, &inputs[i]->rect))
+                    {
+                        ievent.hasFocus = inputs[i];
+                        break;
+                    }
+                    else
+                        ievent.hasFocus = NULL;
                 }
                 break;
 
@@ -184,7 +205,7 @@ int main(int argc, char * argv[])
         }
 
         //Draw background element of the app
-        updateRenderer(appRenderer);
+        updateRenderer(appRenderer, font);
 
         //Update the button
         for(int i = 0; i < 10; i++)
@@ -198,8 +219,9 @@ int main(int argc, char * argv[])
             Input_Update(inputs[i], appRenderer, font, &ievent);
 
         //Update the polynomial
-        Polynomial_UpdateResult(polynomial, appRenderer, font, &event, SDL_TRUE);//Update the result
-        Polynomial_UpdateGraph(polynomial, appRenderer, &event);//Update the graph
+        Polynomial_UpdateResult(polynomial, appRenderer, font, &event, &ievent,
+            inputs[0]->dataWasModified || inputs[1]->dataWasModified || inputs[2]->dataWasModified);
+        Polynomial_UpdateGraph(polynomial, appRenderer, &event, &ievent);//Update the graph
 
         SDL_RenderPresent(appRenderer);
     }

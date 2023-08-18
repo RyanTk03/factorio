@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "../inc/polynomial.h"
-#include "../inc/Input.h"
 #include "../inc/const.h"
 
 Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_Rect *graphRect, int charWidth)
@@ -18,8 +17,12 @@ Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_
         p->graph.viewStart.x = -(graphRect->w / 2);
         p->graph.viewStart.y = graphRect->h / 2;
 
+        p->result.viewStart.x = 0;
+        p->result.viewStart.y = 0;
+
         p->result.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                                              SDL_TEXTUREACCESS_TARGET, ((charWidth * 18) * 3) + (charWidth * 3), resultRect->h);
+            SDL_TEXTUREACCESS_TARGET, ((charWidth * INPUT_MAX_CHARACTER) * 3) + (charWidth * 3), resultRect->h);
+        p->result.totalSize.y = resultRect->h;
 
         for(int i = 0; i < 3; i++)
         {
@@ -33,7 +36,7 @@ Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_
 }
 
 
-void Polynomial_ComputeDiscriminant(Polynomial *p, double *d)
+void Polynomial_ComputeDiscriminant(Polynomial *p, float *d)
 {
     p->discriminant = pow(p->coefficients[1], 2) - (4 * p->coefficients[0] * p->coefficients[2]);
 
@@ -41,7 +44,7 @@ void Polynomial_ComputeDiscriminant(Polynomial *p, double *d)
         *d = p->discriminant;
 }
 
-void Polynomial_ComputeRoots(Polynomial *p, double *r, int n)
+void Polynomial_ComputeRoots(Polynomial *p, float *r, int n)
 {
     if(p->discriminant < 0)
         return;
@@ -65,10 +68,11 @@ void Polynomial_Factorise(Polynomial *p)
     {
         Polynomial_ComputeDiscriminant(p, NULL);
         Polynomial_ComputeRoots(p, NULL, 0);
+
     }
 }
 
-int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, int c, int posX)
+int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, int c, int posX, SDL_bool withX)
 {
     if(p->coefficients[c] != 0)
     {
@@ -78,10 +82,10 @@ int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *
 
         if(fmod(p->coefficients[c], 1.0) == 0)//If the coefficient is an integer
         {
-            snprintf(label, INPUT_MAX_CHARACTER + 4, "%+g%s", p->coefficients[c], c == 0 ? "x²" : c == 1 ? "x" : "\0");
+            snprintf(label, INPUT_MAX_CHARACTER + 4, "%+g%s", p->coefficients[c], withX && c == 0 ? "x²" : withX && c == 1 ? "x" : "\0");
             temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
             y = (p->result.rect.h / 2) - (h / 2);
-            SDL_RenderCopy(renderer, temp, &p->result.rect, &(SDL_Rect){posX, y, w, h});
+            SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){posX, y, w, h});
             SDL_DestroyTexture(temp);
         }
         else //It will be render as a fraction
@@ -91,16 +95,19 @@ int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *
             DecimalToFraction(p->coefficients[c], &f);
             temp = RenderFraction(renderer, font, &f, SDL_TRUE, &w, &h);
             y = (p->result.rect.h / 2) - (h / 2);
-            SDL_RenderCopy(renderer, temp, &p->result.rect, &(SDL_Rect){posX, y, w, h});
-            SDL_DestroyTexture(temp);
-            posX += w;
-
-            //now render the literal
-            snprintf(label, 3, "%s", c == 0 ? "x²" : c == 1 ? "x" : "\0");
-            temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
-            y = (p->result.rect.h / 2) - (h / 2);
             SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){posX, y, w, h});
             SDL_DestroyTexture(temp);
+
+            //now render the literal if it should be drawed
+            if(withX)
+            {
+                posX += w;
+                snprintf(label, 3, "%s", c == 0 ? "x²" : c == 1 ? "x" : "\0");
+                temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
+                y = (p->result.rect.h / 2) - (h / 2);
+                SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){posX, y, w, h});
+                SDL_DestroyTexture(temp);
+            }
         }
         return posX + w;
     }
@@ -110,6 +117,7 @@ int Polynomial_DrawCoefficient(Polynomial *p, SDL_Renderer *renderer, TTF_Font *
 
 void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font)
 {
+    SDL_Texture *temp;
     char label[INPUT_MAX_CHARACTER + 9];// + 9 because of the other character like (, ), x, x² and the space.
     int x = 0, y = 0, w = 0, h = 0;
 
@@ -125,11 +133,10 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
     // If the polynomial is not factorisable, or is not of degree 2
     if(p->coefficients[0] == 0 || p->discriminant < 0)
     {// Render the polynomial in primary form(render the coefficient and x or x²)
-        while(i < 3)
+        for(i = 0; i < 3; i++)
         {
-            x = Polynomial_DrawCoefficient(p, renderer, font, i, x);
+            x = Polynomial_DrawCoefficient(p, renderer, font, i, x, SDL_TRUE);
             w = x;
-            i++;
         }
     }
     else
@@ -137,11 +144,10 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
         // First, write the coefficient[0] (a).
         if(p->coefficients[0] != 1)//printing 1 is not necessary
         {
-            x = Polynomial_DrawCoefficient(p, renderer, font, 0, x);
+            x = Polynomial_DrawCoefficient(p, renderer, font, 0, x, SDL_FALSE);
             w = x;
         }
 
-        SDL_Texture *temp;
         while(i < 2)
         {
             if(p->roots[i] != 0)
@@ -203,20 +209,24 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
     p->result.totalSize.x = w;
 }
 
-void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, SDL_Event *event, SDL_bool wasModified)
+void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *font, SDL_Event *event, InputEvent *ievent, SDL_bool wasModified)
 {
     if(wasModified)
     {
         Polynomial_Factorise(p);
-        Polynomial_RenderResult(p, renderer, font);
+    Polynomial_RenderResult(p, renderer, font);
     }
 
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    SDL_RenderFillRect(renderer, &p->result.rect);
 
     if(event->type == SDL_MOUSEBUTTONDOWN && SDL_PointInRect(&(SDL_Point){event->button.x, event->button.y}, &p->result.rect)
        && p->result.totalSize.x > p->result.rect.w)
     {
         p->result.hasFocus = SDL_TRUE;
         SDL_bool quit = SDL_FALSE;
+        ievent->hasFocus = NULL;
 
         while(!quit)
         {
@@ -241,11 +251,12 @@ void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
 
             SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
             SDL_RenderDrawRect(renderer, &p->result.rect);
+            SDL_RenderPresent(renderer);
         }
         return;
     }
     else if(event->type == SDL_MOUSEBUTTONDOWN &&
-            !SDL_PointInRect(&(SDL_Point){event->button.x, event->button.y}, &p->result.rect))
+        !SDL_PointInRect(&(SDL_Point){event->button.x, event->button.y}, &p->result.rect) && ievent->hasFocus != NULL)
     {
         p->result.hasFocus = SDL_FALSE;
     }
@@ -262,18 +273,18 @@ void Polynomial_UpdateResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
             p->result.viewStart.x = p->result.totalSize.x - p->result.rect.w;
     }
 
-    if(p->result.totalSize.x <= p->result.rect.w)
+    if(p->result.totalSize.x < p->result.rect.w)
     {
-        SDL_RenderCopy(renderer, p->result.texture, NULL,
+        SDL_RenderCopy(renderer, p->result.texture,
+                       &(SDL_Rect){0, 0, p->result.totalSize.x, p->result.rect.h},
                        &(SDL_Rect){p->result.rect.x + (p->result.rect.w / 2) - (p->result.totalSize.x / 2),
-                                  p->result.rect.y, p->result.totalSize.x, p->result.rect.h});
+                                  p->result.rect.y, p->result.totalSize.x, p->result.totalSize.y});
     }
     else
     {
         SDL_RenderCopy(renderer, p->result.texture,
-                       &(SDL_Rect){p->result.viewStart.x, 0, p->result.rect.w, p->result.rect.h},
-                       &(SDL_Rect){p->result.rect.x, p->result.rect.y, p->result.totalSize.x, p->result.rect.h});
-
+                        &(SDL_Rect){p->result.viewStart.x, 0, p->result.rect.w, p->result.rect.h},
+                        &(SDL_Rect){p->result.rect.x, p->result.rect.y, p->result.rect.w, p->result.rect.h});
     }
 
     if(p->result.hasFocus)
@@ -321,7 +332,7 @@ int Polynomial_DrawGraphPoints(Polynomial *p, SDL_Renderer *renderer)
     return 0;
 }
 
-int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *event)
+int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *event, InputEvent *ievent)
 {
     if(event->type == SDL_MOUSEBUTTONDOWN && SDL_PointInRect(&(SDL_Point){event->motion.x, event->motion.y}, &p->graph.rect))
     {
