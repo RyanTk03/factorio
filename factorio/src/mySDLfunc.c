@@ -1,10 +1,17 @@
 #include "../inc/mySDLfunc.h"
+#include <stdio.h>
 
 SDL_Texture* MyTTF_RenderText_Blended(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color fg, int *w, int *h)
 {
     SDL_Surface *temp = TTF_RenderText_Blended(font, text, fg);
 
+    if (temp == NULL)
+        return NULL;
+
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, temp);
+
+    if (texture == NULL)
+        return NULL;
 
     if(w != NULL)
         *w = temp->w;

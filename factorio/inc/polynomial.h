@@ -12,6 +12,7 @@ typedef struct
 {
     SDL_Rect rect;
     SDL_Point viewStart;
+    SDL_Point origin;
 } PolynomialGraph;
 
 typedef struct

@@ -37,11 +37,11 @@ int initNumberButton(AppButton **button, int len, SDL_Renderer *renderer,
                      TTF_Font *font, SDL_Point *buttonsPositions)
 {
     char label[2];
+    label[1] = '\0';
 
     for(int i = 0; i < len; i++)
     {
-        snprintf(label, 1, "%d", i);
-        label[1] = '\0';
+        label[0] = '0' + i;
         button[i] = CreateButton(i != 0 ? NUMBERBUTTON_W : NUMBERBUTTON_W * 3, NUMBERBUTTON_H, label, font);
         if(button[i] == NULL)
             return -1;

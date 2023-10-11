@@ -29,6 +29,12 @@ int main(int argc, char * argv[])
     SDL_Renderer *appRenderer = SDL_CreateRenderer(appWindow, -1,
                                                    SDL_RENDERER_ACCELERATED);
 
+    if(appWindow == NULL || appRenderer == NULL)
+    {
+        fprintf(stderr, "Error, cannot create the window : %s", SDL_GetError());
+        goto EXIT_TAG;
+    }
+
     TTF_Font *font = TTF_OpenFont("CourierPrime.ttf", 18);
 
     if(font == NULL)
@@ -36,6 +42,11 @@ int main(int argc, char * argv[])
         fprintf(stderr, "Error : cannot load the font(CourierPrime.ttf)");
         goto EXIT_TAG;
     }
+
+    SDL_Surface *icon = SDL_LoadBMP("icon.bmp");
+
+    if(icon != NULL)
+        SDL_SetWindowIcon(appWindow, icon);
 
     /*
         We must verify if the font is fixed width because the input system consider
@@ -243,9 +254,17 @@ EXIT_TAG:
 
     Polynomial_Destroy(polynomial);
 
-    TTF_CloseFont(font);
-    SDL_DestroyRenderer(appRenderer);
-    SDL_DestroyWindow(appWindow);
+    if(font != NULL)
+        TTF_CloseFont(font);
+
+    if(icon != NULL)
+        SDL_FreeSurface(icon);
+
+    if(appRenderer != NULL)
+        SDL_DestroyRenderer(appRenderer);
+
+    if(appWindow != NULL)
+        SDL_DestroyWindow(appWindow);
 
     TTF_Quit();
     SDL_Quit();

@@ -17,6 +17,9 @@ Polynomial* Polynomial_Create(SDL_Renderer *renderer, SDL_Rect *resultRect, SDL_
         p->graph.viewStart.x = -(graphRect->w / 2);
         p->graph.viewStart.y = graphRect->h / 2;
 
+        p->graph.origin.x = graphRect->x + graphRect->w / 2;
+        p->graph.origin.y = graphRect->y + graphRect->h / 2;
+
         p->result.viewStart.x = 0;
         p->result.viewStart.y = 0;
 
@@ -319,14 +322,35 @@ void Polynomial_DrawGraphBox(Polynomial *p, SDL_Renderer *renderer)
 
 int Polynomial_DrawGraphPoints(Polynomial *p, SDL_Renderer *renderer)
 {
-    SDL_FPoint point;
+    SDL_Point lastPoint = {p->graph.rect.x - 100, p->graph.rect.y - 100};
+    SDL_Point currentPoint;
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     for(int i = 0; i < p->graph.rect.w; i++)
     {
-        point.x = p->graph.viewStart.x + i;
-        point.y = (p->coefficients[0] * pow(point.x, 2)) + (p->coefficients[1] * point.x) + p->coefficients[2];
-        if(SDL_PointInRect(&point, &p->graph.rect))
-            if(SDL_RenderDrawPointF(renderer, point.x, point.y) < 0)
-                return -1;
+        currentPoint.x = p->graph.origin.x - p->graph.rect.x - i;
+        for(int j = 0; j < p->graph.rect.h; j++)
+        {
+            currentPoint.y =  p->graph.origin.y - p->graph.rect.y - j;
+
+            if(currentPoint.y == (p->coefficients[0] * pow(currentPoint.x, 2)) +
+               (p->coefficients[1] * currentPoint.x) +
+               p->coefficients[2])
+            {
+                int x = p->graph.origin.x - currentPoint.x;
+                int y = p->graph.origin.y - currentPoint.y;
+
+                if(SDL_PointInRect(&lastPoint, &p->graph.rect))
+                    if(SDL_RenderDrawLine(renderer, lastPoint.x, lastPoint.y, x, y) < 0)
+                        return -1;
+                else
+                    if(SDL_RenderDrawPoint(renderer, x, y) < 0)
+                        return -1;
+
+                lastPoint.x = x;
+                lastPoint.y = y;
+            }
+        }
     }
 
     return 0;
@@ -337,6 +361,7 @@ int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *eve
     if(event->type == SDL_MOUSEBUTTONDOWN && SDL_PointInRect(&(SDL_Point){event->motion.x, event->motion.y}, &p->graph.rect))
     {
         SDL_bool quit = SDL_FALSE;
+        int8_t stat = 0;
 
         while(!quit)
         {
@@ -348,19 +373,20 @@ int Polynomial_UpdateGraph(Polynomial *p, SDL_Renderer *renderer, SDL_Event *eve
                     break;
 
                 case SDL_MOUSEMOTION:
+                    p->graph.origin.x += event->motion.xrel;
+                    p->graph.origin.y += event->motion.yrel;
                     p->graph.viewStart.x -= event->motion.xrel;
                     p->graph.viewStart.y += event->motion.yrel;
 
                     break;
             }
-            if(Polynomial_DrawGraphPoints(p,renderer) < 0)
-                return -1;
 
             Polynomial_DrawGraphBox(p, renderer);
+            stat = Polynomial_DrawGraphPoints(p,renderer);
 
             SDL_RenderPresent(renderer);
         }
-        return 0;
+        return stat;
     }
     else
     {
