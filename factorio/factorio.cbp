@@ -16,7 +16,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/factorio" prefix_auto="1" extension_auto="1" />
+				<Option output="factorio" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -41,7 +41,6 @@
 			<Add library="winmm" />
 			<Add library="dxguid" />
 			<Add library="C:/installed_libs/32bits/SDL_ttf/lib/libSDL2_ttf.dll.a" />
-			<Add library="C:/installed_libs/32bits/SDL_image/lib/libSDL2_image.dll.a" />
 			<Add directory="C:/installed_libs/32bits/SDL/lib" />
 		</Linker>
 		<ExtraCommands>
@@ -55,6 +54,9 @@
 		<Unit filename="inc/mySDLfunc.h" />
 		<Unit filename="inc/polynomial.h" />
 		<Unit filename="inc/updateRenderer.h" />
+		<Unit filename="rc/ressources.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Unit filename="src/AppButton.c">
 			<Option compilerVar="CC" />
 		</Unit>

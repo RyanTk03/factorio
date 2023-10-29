@@ -1,6 +1,6 @@
 # Polynomial Factorization and Visualization with SDL2 and SDL_ttf
 
-![Polynomial Visualization Graph](TODO: Insert an image of the graph here)
+![Factorio Program](factorio/screenshots/s1.png)
 
 ## Table of Contents
 - [Overview](#overview)
