@@ -62,7 +62,7 @@ Unfactored polynomial: 1x^2 + 2x + 3
 
 ![Factorio Program execution 2](factorio/screenshots/s3.png)
 
-Note:
+# Note:
 Please note that the graph visualization function is not entirely polished and may have graphical issues. I'm working on improving this feature. If you have any suggestions or contributions, feel free to share them.
 
 Don't hesitate to open issues or contribute to the project to enhance this feature and resolve existing graphical problems.
