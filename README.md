@@ -50,6 +50,7 @@ Enter the coefficient a of the polynomial: 1
 Enter the coefficient b of the polynomial: -3
 Enter the coefficient c of the polynomial: 2
 Factored polynomial: (x - 2)(x - 1)
+
 ![Factorio Program execution 1](factorio/screenshots/s2.png)
 
 Example 2 - Unfactored Polynomial
@@ -58,6 +59,7 @@ Enter the coefficient a of the polynomial: 1
 Enter the coefficient b of the polynomial: 2
 Enter the coefficient c of the polynomial: 3
 Unfactored polynomial: 1x^2 + 2x + 3
+
 ![Factorio Program execution 2](factorio/screenshots/s3.png)
 
 Note:
