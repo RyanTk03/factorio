@@ -66,3 +66,6 @@ Unfactored polynomial: 1x^2 + 2x + 3
 Please note that the graph visualization function is not entirely polished and may have graphical issues. I'm working on improving this feature. If you have any suggestions or contributions, feel free to share them.
 
 Don't hesitate to open issues or contribute to the project to enhance this feature and resolve existing graphical problems.
+
+## About Me
+This project is a reflection of my journey into programming, which began at the age of 14 when I sought to tackle a problem we studied in class. The experience of creating my first program and utilizing SDL, the only graphics library I knew at the time, ignited my passion for coding. While the application may not appear highly professional, it embodies my enthusiasm and dedication to learning. I hope this project inspires others to explore and create confidently.
