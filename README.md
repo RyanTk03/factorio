@@ -1,6 +1,6 @@
 # Polynomial Factorization and Visualization with SDL2 and SDL_ttf
 
-![Factorio Program](factorio/screenshots/s1.png)
+![Factorio Program](screenshots/s1.png)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -44,7 +44,7 @@ Enter the coefficient a of the polynomial: 1
 Enter the coefficient b of the polynomial: -3
 Enter the coefficient c of the polynomial: 2
 Factored polynomial: (x - 2)(x - 1)
-![Factorio Program execution 1](factorio/screenshots/s2.png)
+![Factorio Program execution 1](screenshots/s2.png)
 
 Example 2 - Unfactored Polynomial
 When the polynomial is not factorizable, the program displays the polynomial as it is:
@@ -52,7 +52,7 @@ Enter the coefficient a of the polynomial: 1
 Enter the coefficient b of the polynomial: 2
 Enter the coefficient c of the polynomial: 3
 Unfactored polynomial: 1x^2 + 2x + 3
-![Factorio Program execution 2](factorio/screenshots/s3.png)
+![Factorio Program execution 2](screenshots/s3.png)
 
 Note:
 Please note that the graph visualization function is not entirely polished and may have graphical issues. I'm working on improving this feature. If you have any suggestions or contributions, feel free to share them.
