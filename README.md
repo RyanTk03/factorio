@@ -19,19 +19,13 @@ This C program utilizes SDL2 for graphics rendering and SDL_ttf for text renderi
 
 ```bash
 git clone https://github.com/your-user/your-project.git
-Compile the program using a C compiler compatible with SDL2 and SDL_ttf. Make sure to install SDL2 and SDL_ttf on your system beforehand.
+cd app
 
-gcc -o polynomial_visualizer factorio/src/.c -lSDL2 -lSDL2_ttf -lm
-Run the program :
+# Compile the program using a C compiler compatible with SDL2 and SDL_ttf. Make sure to install SDL2 and SDL_ttf on your system beforehand.
+make
+
+# Run the program :
 ./polynomial_visualizer
-Note : An executable for windows is available. 
-
-Installation
-Ensure that SDL2 and SDL_ttf are installed on your system before compiling the program. You can follow the appropriate installation instructions for your operating system on the official SDL2 and SDL_ttf websites:
-Note : if you use codeblock 20.03, you can directly open the project file but make sure to replace the apropriate path in :
-- project->Build options->Linker settings (For the libraries file),
-- project->Build options->Search directories->Compiler (For the path of the headers files)
-- project->Build options->search directories->Linker (For the path of the libraries files)
 ```
 SDL2: https://github.com/libsdl-org/SDL/releases/tag/release-2.28.4
 SDL_ttf: https://github.com/libsdl-org/SDL_ttf/releases
