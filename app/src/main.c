@@ -5,7 +5,6 @@
 #include "../inc/AppButton.h"
 #include "../inc/initGraphicalsElements.h"
 #include "../inc/const.h"
-#include "../inc/mySDLfunc.h"
 #include "../inc/Input.h"
 #include "../inc/polynomial.h"
 #include "../inc/updateRenderer.h"

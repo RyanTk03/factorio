@@ -1,11 +1,7 @@
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "../inc/mySDLfunc.h"
 #include "../inc/const.h"
 #include "../inc/AppButton.h"
 #include "../inc/initGraphicalsElements.h"
-
 
 void calculateButtonsPositions(SDL_Point *buttonsPositions)
 {

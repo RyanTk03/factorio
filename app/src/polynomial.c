@@ -123,15 +123,12 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
     SDL_Texture *temp;
     char label[INPUT_MAX_CHARACTER + 9];// + 9 because of the other character like (, ), x, x² and the space.
     int x = 0, y = 0, w = 0, h = 0;
-
     SDL_Texture *target = SDL_GetRenderTarget(renderer);
-    SDL_SetRenderTarget(renderer, p->result.texture);
+    int i = 0;
 
+    SDL_SetRenderTarget(renderer, p->result.texture);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
-
-
-    int i = 0;
 
     // If the polynomial is not factorisable, or is not of degree 2
     if(p->coefficients[0] == 0 || p->discriminant < 0)
@@ -157,7 +154,7 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
             {
                 if(fmod(p->roots[i], 1.0) == 0)
                 {
-                    snprintf(label, INPUT_MAX_CHARACTER + 9, "( x %+g )%c", -p->roots[i], p->discriminant == 0 ? '²' : '\0');
+                    snprintf(label, INPUT_MAX_CHARACTER + 9, "( x %+g )%s", -p->roots[i], p->discriminant == 0 ? "²" : "\0");
                     x = w;
                     temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
                     y = (p->result.rect.h / 2) - (h / 2);
@@ -182,7 +179,7 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
                     SDL_DestroyTexture(temp);
 
                     x += w;
-                    snprintf(label, 4, " )%c", p->discriminant == 0 ? '²' : '\0');
+                    snprintf(label, 4, " )%s", p->discriminant == 0 ? "²" : "\0");
                     temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
                     y = (p->result.rect.h / 2) - (h / 2);
                     SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
@@ -192,7 +189,7 @@ void Polynomial_RenderResult(Polynomial *p, SDL_Renderer *renderer, TTF_Font *fo
             else
             {
                 x = w;
-                snprintf(label, MAXNUMBERCHAR + 7, "(x)%c", p->discriminant == 0 ? '²' : '\0');
+                snprintf(label, MAXNUMBERCHAR + 7, "(x)%s", p->discriminant == 0 ? "²" : "\0");
                 temp = MyTTF_RenderText_Blended(renderer, font, label, MySDL_COLORBLACK(255), &w, &h);
                 y = (p->result.rect.h / 2) - (h / 2);
                 SDL_RenderCopy(renderer, temp, NULL, &(SDL_Rect){x, y, w, h});
@@ -341,11 +338,15 @@ int Polynomial_DrawGraphPoints(Polynomial *p, SDL_Renderer *renderer)
                 int y = p->graph.origin.y - currentPoint.y;
 
                 if(SDL_PointInRect(&lastPoint, &p->graph.rect))
+                {
                     if(SDL_RenderDrawLine(renderer, lastPoint.x, lastPoint.y, x, y) < 0)
                         return -1;
+                }
                 else
+                {
                     if(SDL_RenderDrawPoint(renderer, x, y) < 0)
                         return -1;
+                }
 
                 lastPoint.x = x;
                 lastPoint.y = y;

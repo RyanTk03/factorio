@@ -95,8 +95,21 @@ void Input_ManageInputEvent(Input *input, InputEvent *event)
     //Check if the user change input sign
     if(event->keyValue == '-')
     {
-        *input->dataLinked *= -1;
-        input->text[0][0] = input->text[0][0] == '-' ? '+' : '-';
+        if(*input->dataLinked == 0)
+        {
+            *input->dataLinked = input->text[0][0] == '+' ? -1 : 1;
+            input->text[0][0] = input->text[0][0] == '+' ? '-' : '+';
+            
+            input->text[0][1] = '\0';
+            Input_InsertChar(input->text[0], input->currentNumPosition, '1');
+            input->currentNumPosition++;
+            input->dataWasModified = SDL_TRUE;
+        }
+        else
+        {
+            *input->dataLinked *= -1;
+            input->text[0][0] = input->text[0][0] == '-' ? '+' : '-';
+        }
     }
     //Check if the user change fraction mode
     else if(event->keyValue == INPUT_FRACTIONMOD)
@@ -189,7 +202,6 @@ void Input_ManageInputEvent(Input *input, InputEvent *event)
                 input->currentNumPosition++;
                 wasModified = SDL_TRUE;
             }
-
             else if(!input->writingNumerator && strlen(input->text[1]) < INPUT_MAX_CHARACTER)
             {
                 Input_InsertChar(input->text[1], input->currentDenPosition, event->keyValue);
@@ -218,8 +230,12 @@ void Input_ManageInputEvent(Input *input, InputEvent *event)
         else
         {
             *input->dataLinked = SDL_atof(&input->text[0][1]);
+            if(input->text[0][0] == '-')
+            {
+                *input->dataLinked *= -1;
+            }
+            printf("%f\n", *input->dataLinked);
         }
-        printf("%f\n", *input->dataLinked);
     }
 }
 
