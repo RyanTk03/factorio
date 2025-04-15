@@ -25,7 +25,7 @@ cd app
 make
 
 # Run the program :
-./polynomial_visualizer
+./factorio
 ```
 SDL2: https://github.com/libsdl-org/SDL/releases/tag/release-2.28.4
 SDL_ttf: https://github.com/libsdl-org/SDL_ttf/releases
