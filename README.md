@@ -1,4 +1,4 @@
-# Polynomial Factorization and Visualization with SDL2 and SDL_ttf
+# Polynomial Factorization and Visualization with SDL2
 
 ![Factorio Program](screenshots/s1.png)
 
@@ -70,3 +70,4 @@ Unfactored polynomial: 1x^2 + 2x + 3
 ## Note:
 
 ⚠️ The code reflects my skill level at the time – with inconsistent naming, long functions, and an overall "spaghetti" structure. While not clean or production-ready, this project played a big role in my learning path and growth as a developer.
+
